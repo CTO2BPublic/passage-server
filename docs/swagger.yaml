@@ -1,0 +1,413 @@
+definitions:
+  controllers.ResponseSuccess:
+    properties:
+      status:
+        example: 201
+        type: integer
+      title:
+        example: Record successfully created
+        type: string
+      type:
+        example: /status/success
+        type: string
+    type: object
+  controllers.ResponseSuccessCreated:
+    properties:
+      status:
+        example: 201
+        type: integer
+      title:
+        example: Record successfully created
+        type: string
+      type:
+        example: /status/success
+        type: string
+    type: object
+  models.AccessRequest:
+    properties:
+      details:
+        $ref: '#/definitions/models.AccessRequestDetails'
+      id:
+        type: string
+      roleRef:
+        $ref: '#/definitions/models.AccessRoleRef'
+    type: object
+  models.AccessRequestDetails:
+    properties:
+      attributes:
+        additionalProperties: true
+        type: object
+      justification:
+        example: Need to access k8s namespace
+        type: string
+      ttl:
+        example: 72h
+        type: string
+    type: object
+  models.AccessRole:
+    properties:
+      approvalRuleRef:
+        $ref: '#/definitions/models.ApprovalRuleRef'
+      description:
+        type: string
+      id:
+        example: 3b7af992-5a30-4ce1-821b-cac8194a230b
+        type: string
+      name:
+        type: string
+      providers:
+        description: Multiple access mappings for the role
+        items:
+          $ref: '#/definitions/models.ProviderConfig'
+        type: array
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
+  models.AccessRoleRef:
+    properties:
+      name:
+        example: SRE-PU-ACCESS
+        type: string
+    type: object
+  models.ApprovalRuleRef:
+    properties:
+      name:
+        type: string
+    type: object
+  models.ClaimsMap:
+    type: object
+  models.CredentialRef:
+    properties:
+      name:
+        type: string
+    type: object
+  models.Health:
+    properties:
+      healthy:
+        type: boolean
+    type: object
+  models.ProviderConfig:
+    properties:
+      credentialRef:
+        $ref: '#/definitions/models.CredentialRef'
+      name:
+        type: string
+      parameters:
+        additionalProperties:
+          type: string
+        type: object
+      provider:
+        type: string
+      runAsync:
+        type: boolean
+    type: object
+  models.UserProfile:
+    properties:
+      id:
+        type: string
+      settings:
+        $ref: '#/definitions/models.UserProfileSettings'
+      username:
+        type: string
+    type: object
+  models.UserProfileSettings:
+    properties:
+      providerUsernames:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+info:
+  contact:
+    email: tomas@cto2b.eu
+    name: API Support
+    url: https://cto2b.eu
+  description: powerful, open-source access control management solution built in Go
+  license:
+    name: Apache 2.0
+  title: passage-server
+  version: 0.1.0
+paths:
+  /access/requests:
+    get:
+      consumes:
+      - application/json
+      description: List all access requests
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.AccessRequest'
+            type: array
+      security:
+      - JWT: []
+      summary: List access requests
+      tags:
+      - Access requests
+    post:
+      consumes:
+      - application/json
+      description: Create new access request
+      parameters:
+      - description: Access request definition
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/models.AccessRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.ResponseSuccess'
+      security:
+      - JWT: []
+      summary: Create access request
+      tags:
+      - Access requests
+  /access/requests/{ID}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete access request by id
+      parameters:
+      - default: xxxx-xxxx-xxxx
+        description: AccessRequest id
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.AccessRequest'
+            type: array
+      security:
+      - JWT: []
+      summary: Delete access request
+      tags:
+      - Access requests
+  /access/requests/{ID}/approve:
+    post:
+      consumes:
+      - application/json
+      description: Approve access requests. All providers assigned to role will ensure
+        user access
+      parameters:
+      - default: xxxx-xxxx-xxxx
+        description: AccessRequest id
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.ResponseSuccess'
+      security:
+      - JWT: []
+      summary: Approve access request
+      tags:
+      - Access requests
+  /access/requests/{ID}/expire:
+    post:
+      consumes:
+      - application/json
+      description: Expire user access. All providers assigned to role will ensure
+        access expiration
+      parameters:
+      - default: xxxx-xxxx-xxxx
+        description: AccessRequest id
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.ResponseSuccess'
+      security:
+      - JWT: []
+      summary: Expire access request
+      tags:
+      - Access requests
+  /access/roles:
+    get:
+      consumes:
+      - application/json
+      description: Create a new which can be later used in access requests
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.AccessRole'
+            type: array
+      security:
+      - JWT: []
+      summary: List roles
+      tags:
+      - Access roles
+    post:
+      consumes:
+      - application/json
+      description: Create a new which can be later used in access requests
+      parameters:
+      - description: Role definition
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/models.AccessRole'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.ResponseSuccess'
+      security:
+      - JWT: []
+      summary: Create role
+      tags:
+      - Access roles
+  /healthz:
+    get:
+      consumes:
+      - application/json
+      description: Healthy
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Health'
+            type: array
+      security:
+      - JWT: []
+      summary: Healthy
+      tags:
+      - API health
+  /livez:
+    get:
+      consumes:
+      - application/json
+      description: Liveness
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Health'
+            type: array
+      security:
+      - JWT: []
+      summary: Liveness
+      tags:
+      - API health
+  /readyz:
+    get:
+      consumes:
+      - application/json
+      description: Readyness
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Health'
+            type: array
+      security:
+      - JWT: []
+      summary: Readyness
+      tags:
+      - API health
+  /user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Returns curent user's profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserProfile'
+      security:
+      - JWT: []
+      summary: User profile
+      tags:
+      - User
+  /user/profile/settings:
+    put:
+      consumes:
+      - application/json
+      description: Updates current user's settings
+      parameters:
+      - description: User profiles settings
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserProfileSettings'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.ResponseSuccessCreated'
+      security:
+      - JWT: []
+      summary: Update user settings
+      tags:
+      - User
+  /userinfo:
+    get:
+      consumes:
+      - application/json
+      description: Returns information about authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ClaimsMap'
+      security:
+      - JWT: []
+      summary: User info
+      tags:
+      - User
+securityDefinitions:
+  JWT:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
