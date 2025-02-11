@@ -1,0 +1,175 @@
+swagger:
+  host: localhost:8080
+
+auth:
+  oidc:
+    enabled: false
+    issuerUrl: https://dex.exampleorg.com
+    clientId: passage-server
+  jwt:
+    enabled: true
+    tokenHeader: Authorization
+    # headerPrefix: ""
+    usernameClaim: username
+    groupsClaim: roles
+    # providerUsernamesClaim: "traits"
+    jwksurl: https://teleport.exampleorg.com/.well-known/jwks.json
+    issuer: teleport.exampleorg.com
+
+tracing:
+  enabled: false
+  connectionType: grpc
+  url: localhost:4317
+  # connectionType: http
+  # url: http://localhost:43318
+  serviceName: passage-server
+  environmentName: examplecluster
+
+log:
+  level: info
+  pretty: true
+  caller: true
+
+db:
+  engine: sqlite
+  filename: gorm.db
+
+  # # mySQL
+  # engine: mysql
+  # mysql:
+  #   host: 127.0.0.1
+  #   port: 3306
+  #   username: admin
+  #   password: changeme
+  #   database: passage
+
+  # # PSQL
+  # engine: psql
+  # mysql:
+  #   host: 127.0.0.1
+  #   port: 5432
+  #   username: admin
+  #   password: changeme
+  #   database: passage
+  #   schema: public
+
+# Credentials which can be refferenced inside the providers
+creds:
+  gitlab:
+    data:
+      # env PASSAGE_CREDS_GITLAB_DATA_TOKEN
+  google:
+    data:
+      credentialsfile: creds/google-sa.json
+  teleport:
+    data:
+      credentialsfile: creds/teleport-identity-file
+      hostname: teleport.exampleorg.com
+
+approvalRules:
+  - name: SRE approvers
+    users:
+      - Default user
+    groups:
+      - passage-sre-approvers
+
+roles:
+  - name: SRE Power User Access
+    description: Privilleged access. Provides PU access to Gitlab, Teleport, Google and AWS
+    approvalRuleRef:
+      name: SRE approvers
+    tags:
+      - sre
+    providers:
+      - name: GitlabSrePu
+        provider: gitlab
+        runAsync: true
+        credentialRef:
+          name: gitlab
+        parameters:
+          group: exampleorg/pu-group
+          level: Owner
+
+      - name: AwsPu
+        provider: aws
+        runAsync: true
+        credentialRef:
+          name: aws
+        parameters:
+          group: pu-group
+
+      - name: GooglePu
+        provider: google
+        runAsync: true
+        credentialRef:
+          name: google
+        parameters:
+          group: pu-access@exampleorg.com
+
+      - name: TeleportPu
+        provider: teleport
+        runAsync: true
+        credentialRef:
+          name: teleport
+        parameters:
+          group: pu-role
+
+  - name: SRE Read Only
+    description: Non privilleged access. Provides RO access to Gitlab, Teleport, Google and AWS
+    approvalRuleRef:
+      name: SRE approvers
+    tags:
+      - sre
+    providers:
+      - name: GitlabRo
+        provider: gitlab
+        credentialRef:
+          name: gitlab
+        parameters:
+          group: exampleorg/ro-group
+          level: Owner
+
+      - name: AwsRo
+        provider: aws
+        credentialRef:
+          name: aws
+        parameters:
+          group: ro-group
+
+      - name: GoogleRo
+        provider: google
+        credentialRef:
+          name: google
+        parameters:
+          group: ro-access@exampleorg.com
+
+      - name: TeleportRo
+        provider: teleport
+        runAsync: false
+        credentialRef:
+          name: teleport
+        parameters:
+          group: ro-role
+
+  - name: AWS Power Manager
+    description: Access to OrgAdmin, IAMManager, Billing roles
+    approvalRuleRef:
+      name: SRE approvers
+    tags:
+      - sre
+    providers:
+      - name: AwsBilling
+        provider: aws
+        runAsync: false
+        credentialRef:
+          name: aws
+        parameters:
+          group: Billing
+
+      - name: AwsIamManager
+        provider: aws
+        runAsync: false
+        credentialRef:
+          name: aws
+        parameters:
+          group: ExampleOrgIAMManager
