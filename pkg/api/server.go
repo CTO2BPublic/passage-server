@@ -7,6 +7,7 @@ import (
 	"github.com/CTO2BPublic/passage-server/pkg/config"
 	"github.com/CTO2BPublic/passage-server/pkg/controllers"
 	"github.com/CTO2BPublic/passage-server/pkg/dbdriver"
+	"github.com/CTO2BPublic/passage-server/pkg/eventdriver"
 	"github.com/CTO2BPublic/passage-server/pkg/middlewares"
 
 	docs "github.com/CTO2BPublic/passage-server/docs"
@@ -22,6 +23,7 @@ import (
 
 var Db = dbdriver.GetDriver()
 var Config = config.GetConfig()
+var Event = eventdriver.GetDriver()
 
 type Server struct {
 	Engine *gin.Engine
@@ -34,6 +36,10 @@ func (s *Server) SetupEngineWithDefaults() *Server {
 	if Config.Tracing.Enabled {
 		tracing.NewTracer()
 		s.Engine.Use(tracing.NewTracingMidleware())
+	}
+
+	if Config.Events.Kafka.Enabled {
+		Event.NewDriver()
 	}
 
 	// Logger middleware will write the logs to gin.DefaultWriter even if you set with GIN_MODE=release.

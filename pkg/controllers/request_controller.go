@@ -108,6 +108,9 @@ func (r *AccessRequestController) Create(c *gin.Context) {
 	// Save it to DB
 	Db.InsertAccessRequest(ctx, data)
 
+	// Fire creation event
+	Event.AccessRequestCreated(ctx, data)
+
 	c.JSON(errors.StatusCreated())
 }
 
@@ -184,6 +187,8 @@ func (r *AccessRequestController) Delete(c *gin.Context) {
 		return
 	}
 
+	Event.AccessRequestDeleted(ctx, *accessRequest)
+
 	c.JSON(errors.StatusDeleted())
 }
 
@@ -236,6 +241,9 @@ func (r *AccessRequestController) Approve(c *gin.Context) {
 		SetTraceId(ctx)
 
 	Db.UpdateAccessRequest(ctx, accessRequest)
+
+	// Fire approval event
+	Event.AccessRequestApproved(ctx, *accessRequest)
 
 	// Partial success
 	if err != nil {
@@ -295,6 +303,8 @@ func (r *AccessRequestController) Expire(c *gin.Context) {
 		SetTraceId(ctx)
 
 	Db.UpdateAccessRequest(ctx, accessRequest)
+
+	Event.AccessRequestExpired(ctx, *accessRequest)
 
 	if err != nil {
 		c.AbortWithStatusJSON(errors.AccessProviderCallPartiallyFailed(err))
