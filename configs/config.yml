@@ -9,7 +9,7 @@ auth:
   jwt:
     enabled: true
     tokenHeader: Authorization
-    # headerPrefix: ""
+    # headerPrefix: "Bearer "
     usernameClaim: username
     groupsClaim: roles
     # providerUsernamesClaim: "traits"
@@ -24,6 +24,19 @@ tracing:
   # url: http://localhost:43318
   serviceName: passage-server
   environmentName: examplecluster
+
+events:
+  data:
+    tenant: sview
+    typePrefix: cto2b
+  kafka:
+    enabled: false
+    hostname: kafka.shared:9092
+    topic: exampleorg.com.passage
+    numPartitions: 1
+    replicationFactor: 1
+  console:
+    enabled: false
 
 log:
   level: info

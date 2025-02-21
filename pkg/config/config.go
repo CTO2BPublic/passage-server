@@ -19,6 +19,7 @@ type Config struct {
 	Swagger       SwaggerConfig
 	Auth          AuthConfig
 	Tracing       TracingConfig
+	Events        EventsConfig
 	Log           LogConfig
 	Db            DbConfig
 	Creds         map[string]models.Credential `json:"-"`
@@ -58,6 +59,29 @@ type TracingConfig struct {
 	ConnectionType  string
 	ServiceName     string
 	EnvironmentName string
+}
+
+type EventsConfig struct {
+	Kafka   EventsKafkaConfig
+	Console EventsConsoleConfig
+	Data    EventsData
+}
+
+type EventsKafkaConfig struct {
+	Enabled           bool
+	Hostname          string
+	Topic             string
+	NumPartitions     int
+	ReplicationFactor int
+}
+
+type EventsConsoleConfig struct {
+	Enabled bool
+}
+
+type EventsData struct {
+	Tenant     string
+	TypePrefix string
 }
 
 type LogConfig struct {
