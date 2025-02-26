@@ -34,7 +34,7 @@ jobs:
 
       - name: Build with ko (for PR)
         if: github.event_name == 'pull_request'
-        run: ko build --tags [pr${{ github.event.pull_request.number }}]
+        run: ko build --tags pr-${{ github.event.pull_request.number }}
 
       # Run GoReleaser for tagged releases only
       - name: Run GoReleaser (for tags)
