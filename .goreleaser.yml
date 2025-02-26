@@ -28,125 +28,24 @@ archives:
       {{- if .Arm }}v{{ .Arm }}{{ end -}}
 
 kos:
-  - # ID of this image.
-    id: image
-
-    # Build ID that should be used to import the build settings.
+  - id: image
     build: build
-
-    # Main path to build.
-    # It must be a relative path
-    #
-    # Default: build.main.
-    # main: ./cmd/...
-
-    # Working directory used to build.
-    #
-    # Default: build.dir.
-    # working_dir: .
-
-    # Base image to publish to use.
-    #
-    # Default: 'cgr.dev/chainguard/static'.
-    # base_image: alpine
-
-    # Labels for the image.
-    # labels:
-    # foo: bar
-
-    # Annotations for the OCI manifest.
-    # annotations:
-    # foo: bar
-
-    # The default user the image should be run as.
-    # user: "1234:1234"
-
-    # Repositories to push to.
-    #
-    # First one will be used on Ko build, the other ones will be copied from the
-    # first one using crane.
-    #
-    # Default: [ '$KO_DOCKER_REPO' ].
     repositories:
       - ghcr.io/cto2bpublic/passage-server
-    # - foo/bar
-
-    # Repository to push to.
-    #
-    # Default: '$KO_DOCKER_REPO'.
-    # Deprecated: use 'repositories' instead.
-    # repository: ghcr.io/foo/bar
-
-    # Platforms to build and publish.
-    #
-    # Default: 'linux/amd64'.
     platforms:
       - linux/amd64
       - linux/arm64
-
-    # Tag to build and push.
-    # Empty tags are ignored.
-    #
-    # Default: 'latest'.
-    # Templates: allowed.
     tags:
       - latest
       - "{{.Tag}}"
       - "{{if not .Prerelease}}stable{{end}}"
-
-    # Creation time given to the image
-    # in seconds since the Unix epoch as a string.
-    #
-    # Templates: allowed.
     creation_time: "{{.CommitTimestamp}}"
-
-    # Creation time given to the files in the kodata directory
-    # in seconds since the Unix epoch as a string.
-    #
-    # Templates: allowed.
     ko_data_creation_time: "{{.CommitTimestamp}}"
-
-    # SBOM format to use.
-    #
-    # Default: 'spdx'.
-    # Valid options are: spdx and none.
     sbom: none
-
-    # Ldflags to use on build.
-    #
-    # Default: build.ldflags.
-    # ldflags:
-    # - foo
-    # - bar
-
-    # Flags to use on build.
-    #
-    # Default: build.flags.
-    # flags:
-    # - foo
-    # - bar
-
-    # Env to use on build.
-    #
-    # Default: build.env.
-    # env:
-    # - FOO=bar
-    # - SOMETHING=value
-
-    # Whether to disable this particular Ko configuration.
-    #
-    # Templates: allowed.
-    # Since: v2.8 (unreleased).
-    # disable: "{{ .IsSnapshot }}"
-
-    # Bare uses a tag on the $KO_DOCKER_REPO without anything additional.
     bare: true
-
-    # Whether to preserve the full import path after the repository name.
     preserve_import_paths: true
-
-    # Whether to use the base path without the MD5 hash after the repository name.
     base_import_paths: true
+
 release:
   disable: false
   prerelease: auto
