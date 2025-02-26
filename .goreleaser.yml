@@ -30,8 +30,7 @@ archives:
 kos:
   - id: image
     build: build
-    repositories:
-      - ghcr.io/cto2bpublic/passage-server
+    repository: ghcr.io/cto2bpublic/passage-server
     platforms:
       - linux/amd64
       - linux/arm64
@@ -43,7 +42,7 @@ kos:
     ko_data_creation_time: "{{.CommitTimestamp}}"
     sbom: none
     bare: true
-    preserve_import_paths: true
+    preserve_import_paths: false
     base_import_paths: true
 
 release:
