@@ -38,12 +38,12 @@ kos:
     # It must be a relative path
     #
     # Default: build.main.
-    main: ./cmd/...
+    # main: ./cmd/...
 
     # Working directory used to build.
     #
     # Default: build.dir.
-    working_dir: .
+    # working_dir: .
 
     # Base image to publish to use.
     #
