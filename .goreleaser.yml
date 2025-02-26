@@ -1,0 +1,75 @@
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+builds:
+  - id: build
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      # - windows
+      # - darwin
+    goarch:
+      - amd64
+      # - arm
+      # - arm64
+    goarm:
+      - "6"
+      - "7"
+archives:
+  - id: foo
+    name_template: >-
+      {{- .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end -}}
+
+kos:
+  - id: image
+    build: build
+    repositories:
+      - ghcr.io/cto2bpublic/passage-server
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    tags:
+      - latest
+      - "{{.Tag}}"
+      - "{{if not .Prerelease}}stable{{end}}"
+    creation_time: "{{.CommitTimestamp}}"
+    ko_data_creation_time: "{{.CommitTimestamp}}"
+    sbom: none
+    bare: true
+    preserve_import_paths: true
+    base_import_paths: true
+
+release:
+  disable: false
+  prerelease: auto
+  mode: replace
+  name_template: "{{.ProjectName}}-{{.Tag}}"
+checksum:
+  name_template: "checksums.txt"
+snapshot:
+  name_template: "{{ incpatch .Tag }}-next"
+changelog:
+  sort: asc
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: "Bug fixes"
+      regexp: '^.*?bug(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: "Security"
+      regexp: '^.*?sec(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Others
+      order: 999
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
