@@ -49,7 +49,7 @@ release:
   disable: false
   prerelease: auto
   mode: replace
-  name_template: "{{.ProjectName}}-{{.Tag}}"
+  name_template: "{{.Tag}}"
 checksum:
   name_template: "checksums.txt"
 snapshot:
