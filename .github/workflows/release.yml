@@ -1,4 +1,4 @@
-name: goreleaser
+name: Build and Release
 
 on:
   push:
@@ -12,7 +12,8 @@ permissions:
   contents: write
 
 jobs:
-  goreleaser:
+  publish:
+    name: Publish
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,25 +23,26 @@ jobs:
 
       - name: Set up Go
         uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
 
-      # Conditional step for PRs: Run ko build --bare
-      - name: Run ko build --bare (PR only)
+      # Run ko build for PRs only
+      - name: Run ko build (for PR)
         if: github.event_name == 'pull_request'
-        run: |
-          echo "Running ko build --bare for PR..."
-          ko build --bare
+        uses: ko-build/setup-ko@v0.8
+      - name: Build with ko (for PR)
+        if: github.event_name == 'pull_request'
+        run: ko build
 
-      # Conditional step for Tag Push Events: Run GoReleaser
-      - name: Run GoReleaser (Tag push only)
+      # Run GoReleaser for tagged releases only
+      - name: Run GoReleaser (for tags)
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: goreleaser/goreleaser-action@v6
         with:
-          # either 'goreleaser' (default) or 'goreleaser-pro'
           distribution: goreleaser
-          # 'latest', 'nightly', or a semver
           version: "~> v2"
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
+          # If you're using GoReleaser Pro, provide the key:
           # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
