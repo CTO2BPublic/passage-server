@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   publish:
@@ -30,6 +31,7 @@ jobs:
       - name: Run ko build (for PR)
         if: github.event_name == 'pull_request'
         uses: ko-build/setup-ko@v0.8
+
       - name: Build with ko (for PR)
         if: github.event_name == 'pull_request'
         run: ko build
