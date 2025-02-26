@@ -1,8 +1,6 @@
 module github.com/CTO2BPublic/passage-server
 
-go 1.22.7
-
-toolchain go1.22.11
+go 1.23.0
 
 require (
 	github.com/IBM/sarama v1.45.0
