@@ -102,7 +102,7 @@ func (s *Server) SetupEngineWithDefaults() *Server {
 	users := rg.Group("/users")
 	users.Use(middlewares.Auth())
 	{
-		s.Engine.GET("/", userController.GetUsers)
+		users.GET("/", userController.GetUsers)
 	}
 
 	s.Engine.GET("/userinfo", middlewares.Auth(), userController.UserInfo)
