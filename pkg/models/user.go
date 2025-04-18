@@ -28,3 +28,15 @@ func (p *UserProfile) Validate() error {
 	}
 	return nil
 }
+
+func (p *UserProfile) GetUser() User {
+	return User{
+		Id:       p.Id,
+		Username: p.Username,
+	}
+}
+
+type User struct {
+	Id       string `gorm:"primaryKey" json:"id"`
+	Username string `json:"username"`
+}

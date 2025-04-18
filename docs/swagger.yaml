@@ -103,6 +103,13 @@ definitions:
       runAsync:
         type: boolean
     type: object
+  models.User:
+    properties:
+      id:
+        type: string
+      username:
+        type: string
+    type: object
   models.UserProfile:
     properties:
       id:
@@ -403,6 +410,25 @@ paths:
       security:
       - JWT: []
       summary: User info
+      tags:
+      - User
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Returns all user profiles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+      security:
+      - JWT: []
+      summary: User profiles
       tags:
       - User
 securityDefinitions:

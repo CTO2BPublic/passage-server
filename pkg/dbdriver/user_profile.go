@@ -24,6 +24,12 @@ func (d *Database) SelectUserProfile(ctx context.Context, data models.UserProfil
 	return result, q.Error
 }
 
+func (d *Database) SelectUserProfiles(ctx context.Context) ([]models.UserProfile, error) {
+	var result []models.UserProfile
+	q := d.Engine.WithContext(ctx).Find(&result, models.UserProfile{})
+	return result, q.Error
+}
+
 func (d *Database) UserProfileExists(ctx context.Context, data models.UserProfile) (bool, error) {
 	var count int64
 	err := d.Engine.WithContext(ctx).Model(&models.UserProfile{}).Where("id = ?", data.Id).Count(&count).Error

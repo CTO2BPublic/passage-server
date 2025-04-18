@@ -88,6 +88,35 @@ func (r *UserController) GetProfile(c *gin.Context) {
 }
 
 // @Security JWT
+// @Summary User profiles
+// @Schemes
+// @Description Returns all user profiles
+// @Tags User
+// @Accept json
+// @Produce json
+// @Success 200 {object} []models.User
+// @Router /users [get]
+func (r *UserController) GetUsers(c *gin.Context) {
+
+	ctx, span := tracing.NewSpanWrapper(c.Request.Context(), "controllers.UserController.GetProfiles")
+	defer span.End()
+
+	profiles, err := Db.SelectUserProfiles(ctx)
+	if err != nil {
+		c.AbortWithStatusJSON(errors.ErrorDatabaseSelect(err))
+		return
+	}
+
+	users := []models.User{}
+
+	for _, profile := range profiles {
+		users = append(users, profile.GetUser())
+	}
+
+	c.JSON(200, users)
+}
+
+// @Security JWT
 // @Summary Update user settings
 // @Schemes
 // @Description Updates current user's settings
