@@ -99,6 +99,12 @@ func (s *Server) SetupEngineWithDefaults() *Server {
 		user.PUT("/profile/settings", userController.UpdateProfileSettings)
 	}
 
+	users := rg.Group("/users")
+	users.Use(middlewares.Auth())
+	{
+		users.GET("/", userController.GetUsers)
+	}
+
 	s.Engine.GET("/userinfo", middlewares.Auth(), userController.UserInfo)
 
 	s.Engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
