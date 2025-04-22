@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"context"
 	"net/http"
+	"slices"
 
 	"github.com/CTO2BPublic/passage-server/pkg/errors"
 	"github.com/CTO2BPublic/passage-server/pkg/models"
@@ -66,14 +68,7 @@ func (r *UserController) GetProfile(c *gin.Context) {
 
 	// If profile does not exist, create a new one
 	if !exists {
-		profile := models.UserProfile{
-			Id:       uid,
-			Username: uid,
-			Settings: models.UserProfileSettings{
-				ProviderUsernames: providers.NewProviderUsernames(),
-			},
-		}
-		Db.InsertUserProfile(ctx, profile)
+		profile := r.newDefaultProfile(ctx, uid)
 		c.JSON(200, profile)
 		return
 	}
@@ -90,7 +85,7 @@ func (r *UserController) GetProfile(c *gin.Context) {
 // @Security JWT
 // @Summary User profiles
 // @Schemes
-// @Description Returns all user profiles
+// @Description Returns all users
 // @Tags User
 // @Accept json
 // @Produce json
@@ -101,19 +96,88 @@ func (r *UserController) GetUsers(c *gin.Context) {
 	ctx, span := tracing.NewSpanWrapper(c.Request.Context(), "controllers.UserController.GetProfiles")
 	defer span.End()
 
+	uid := c.GetString("uid")
+
 	profiles, err := Db.SelectUserProfiles(ctx)
 	if err != nil {
 		c.AbortWithStatusJSON(errors.ErrorDatabaseSelect(err))
 		return
 	}
 
-	users := []models.User{}
+	if len(profiles) == 0 {
+		profiles = append(profiles, r.newDefaultProfile(ctx, uid))
+	}
 
+	users := []models.User{}
 	for _, profile := range profiles {
 		users = append(users, profile.GetUser())
 	}
 
 	c.JSON(200, users)
+}
+
+// @Security JWT
+// @Summary List access requests
+// @Schemes
+// @Description List all access requests
+// @Tags Access requests
+// @Accept json
+// @Produce json
+// @Success 200 {object} []models.AccessRequest
+// @Router /users/role-mappings [get]
+func (r *UserController) GetRoleMappings(c *gin.Context) {
+
+	ctx, span := tracing.NewSpanWrapper(c.Request.Context(), "controllers.RequestController.List")
+	defer span.End()
+
+	requests, err := Db.SelectAccessRequests(ctx)
+	if err != nil {
+		c.AbortWithStatusJSON(errors.ErrorDatabaseSelect(err))
+	}
+
+	userMap := map[string]models.User{}
+
+	for _, req := range requests {
+		if req.Status.Status == models.AccessRequestApproved {
+			requester := req.Status.RequestedBy
+			roleName := req.RoleRef.Name
+
+			user, ok := userMap[requester]
+			if !ok {
+				user = models.User{
+					Id:       requester,
+					Username: requester,
+					Roles:    []string{},
+				}
+			}
+
+			if !slices.Contains(user.Roles, roleName) {
+				user.Roles = append(user.Roles, roleName)
+			}
+
+			userMap[requester] = user
+		}
+	}
+
+	result := []models.User{}
+	for _, user := range userMap {
+		result = append(result, user)
+	}
+
+	c.JSON(200, result)
+}
+
+func (r *UserController) newDefaultProfile(ctx context.Context, uid string) models.UserProfile {
+	profile := models.UserProfile{
+		Id:       uid,
+		Username: uid,
+		Settings: models.UserProfileSettings{
+			ProviderUsernames: providers.NewProviderUsernames(),
+		},
+	}
+	Db.InsertUserProfile(ctx, profile)
+
+	return profile
 }
 
 // @Security JWT

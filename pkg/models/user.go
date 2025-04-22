@@ -37,6 +37,7 @@ func (p *UserProfile) GetUser() User {
 }
 
 type User struct {
-	Id       string `gorm:"primaryKey" json:"id"`
-	Username string `json:"username"`
+	Id       string   `gorm:"primaryKey" json:"id"`
+	Username string   `json:"username"`
+	Roles    []string `json:"roles,omitempty"`
 }

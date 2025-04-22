@@ -107,6 +107,10 @@ definitions:
     properties:
       id:
         type: string
+      roles:
+        items:
+          type: string
+        type: array
       username:
         type: string
     type: object
@@ -416,7 +420,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Returns all user profiles
+      description: Returns all users
       produces:
       - application/json
       responses:
@@ -431,6 +435,25 @@ paths:
       summary: User profiles
       tags:
       - User
+  /users/role-mappings:
+    get:
+      consumes:
+      - application/json
+      description: List all access requests
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+      security:
+      - JWT: []
+      summary: List access requests
+      tags:
+      - Access requests
 securityDefinitions:
   JWT:
     in: header
