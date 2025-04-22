@@ -470,7 +470,7 @@ const docTemplate = `{
                         "JWT": []
                     }
                 ],
-                "description": "Returns all user profiles",
+                "description": "Returns all users",
                 "consumes": [
                     "application/json"
                 ],
@@ -481,6 +481,37 @@ const docTemplate = `{
                     "User"
                 ],
                 "summary": "User profiles",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.User"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/role-mappings": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "List all access requests",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Access requests"
+                ],
+                "summary": "List access requests",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -656,6 +687,12 @@ const docTemplate = `{
             "properties": {
                 "id": {
                     "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "username": {
                     "type": "string"
