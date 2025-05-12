@@ -2,6 +2,8 @@ package teleport
 
 import (
 	"context"
+	"slices"
+	"strings"
 
 	"github.com/CTO2BPublic/passage-server/pkg/tracing"
 
@@ -23,7 +25,11 @@ func (a *TeleportProvider) addRoleToUser(ctx context.Context, Username string, R
 
 	if user.GetName() == Username {
 
-		user.AddRole(RoleName)
+		roles := a.parseRoles(ctx, RoleName)
+
+		for _, role := range roles {
+			user.AddRole(role)
+		}
 
 		_, err := a.Client.UpdateUser(ctx, user)
 		if err != nil {
@@ -47,10 +53,12 @@ func (a *TeleportProvider) removeRoleFromUser(ctx context.Context, Username stri
 	}
 
 	filteredRoles := []string{}
-	roles := user.GetRoles()
 
-	for _, role := range roles {
-		if role != RoleName {
+	currentRoles := user.GetRoles()
+	rolesToRemove := a.parseRoles(ctx, RoleName)
+
+	for _, role := range currentRoles {
+		if !slices.Contains(rolesToRemove, role) {
 			filteredRoles = append(filteredRoles, role)
 		}
 	}
@@ -63,4 +71,15 @@ func (a *TeleportProvider) removeRoleFromUser(ctx context.Context, Username stri
 	}
 
 	return nil
+}
+
+func (a *TeleportProvider) parseRoles(ctx context.Context, group string) []string {
+
+	roles := strings.Split(group, ",")
+
+	if len(roles) > 0 {
+		return roles
+	}
+
+	return []string{"group"}
 }
