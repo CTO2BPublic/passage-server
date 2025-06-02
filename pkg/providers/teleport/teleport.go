@@ -25,6 +25,7 @@ type TeleportProvider struct {
 
 type TeleportProviderParameters struct {
 	Group           string `json:"group"`
+	GroupDefinition string `json:"groupDefinition"`
 	Username        string `json:"username"`
 	CredentialsFile string `json:"credentialsFile"`
 	Hostname        string `json:"hostname"`
@@ -63,6 +64,15 @@ func (a *TeleportProvider) GrantAccess(ctx context.Context, request *models.Acce
 	defer a.Client.Close()
 
 	parameters := a.Parameters
+
+	if parameters.GroupDefinition != "" {
+		err := a.upsertRole(parameters.Group, parameters.GroupDefinition)
+		if err != nil {
+			request.SetProviderStatusError(a.Name, parameters.Group, err.Error())
+			return fmt.Errorf("failed to create teleport role: %w", err)
+		}
+	}
+
 	_, err := a.addRoleToUser(ctx, parameters.Username, parameters.Group)
 	if err != nil {
 		request.SetProviderStatusError(a.Name, parameters.Group, err.Error())
@@ -132,8 +142,14 @@ func extractParameters(config models.ProviderConfig) (TeleportProviderParameters
 		return TeleportProviderParameters{}, errors.New("username not found in provider config")
 	}
 
+	groupDefinition, ok := data["groupDefinition"]
+	if !ok {
+		groupDefinition = ""
+	}
+
 	return TeleportProviderParameters{
 		Group:           group,
+		GroupDefinition: groupDefinition,
 		Username:        username,
 		CredentialsFile: credentialsFile,
 		Hostname:        hostname,

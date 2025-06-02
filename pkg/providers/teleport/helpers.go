@@ -6,6 +6,9 @@ import (
 	"strings"
 
 	"github.com/CTO2BPublic/passage-server/pkg/tracing"
+	"github.com/gravitational/teleport/api/types"
+	jsoniter "github.com/json-iterator/go"
+	"gopkg.in/yaml.v2"
 
 	"go.opentelemetry.io/otel/attribute"
 )
@@ -37,6 +40,40 @@ func (a *TeleportProvider) addRoleToUser(ctx context.Context, Username string, R
 		}
 	}
 	return true, nil
+}
+
+func (a *TeleportProvider) upsertRole(RoleName string, roleDefinition string) error {
+	ctx := context.Background()
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	var holder map[interface{}]interface{}
+	yaml.Unmarshal([]byte(roleDefinition), &holder)
+	bytes, err := json.Marshal(holder)
+	if err != nil {
+		return err
+	}
+
+	var role types.RoleV6
+	err = json.Unmarshal(bytes, &role)
+	if err != nil {
+		return err
+	}
+
+	role.SetMetadata(types.Metadata{
+		Name:        RoleName,
+		Description: "Passage created role",
+	})
+
+	if a.Client != nil {
+
+		_, err = a.Client.UpsertRole(ctx, &role)
+		if err != nil {
+			return err
+		}
+	} else {
+		return err
+	}
+	return nil
 }
 
 func (a *TeleportProvider) removeRoleFromUser(ctx context.Context, Username string, RoleName string) error {
