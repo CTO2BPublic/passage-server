@@ -87,6 +87,33 @@ approvalRules:
       - passage-sre-approvers
 
 roles:
+  - name: SRE Tenant Dev
+    description: Privilleged access. Provides PU access to Dev Tenant
+    approvalRuleRef:
+      name: SRE approvers
+    tags:
+      - sre
+    providers:
+      - name: Teleport
+        provider: teleport
+        runAsync: true
+        credentialRef:
+          name: teleport
+        parameters:
+          group: pu-role
+          groupDefinition: |
+            spec:
+              allow:
+                kubernetes_groups:
+                - system:masters      
+                kubernetes_labels:
+                  tenant: dev
+                kubernetes_resources:
+                - kind: '*'
+                  name: '*'
+                  namespace: '*'
+                  verbs: ['*']
+
   - name: SRE Power User Access
     description: Privilleged access. Provides PU access to Gitlab, Teleport, Google and AWS
     approvalRuleRef:
