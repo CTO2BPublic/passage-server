@@ -65,6 +65,7 @@ db:
   #   password: changeme
   #   database: passage
   #   schema: public
+  #   sslmode: disable
 
 # Credentials which can be refferenced inside the providers
 creds:
