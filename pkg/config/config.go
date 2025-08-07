@@ -104,6 +104,7 @@ type PsqlConfig struct {
 	Password string
 	Database string
 	Schema   string
+	SSLMode  string
 }
 
 type MysqlConfig struct {

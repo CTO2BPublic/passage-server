@@ -32,7 +32,7 @@ func (d *Database) Connect() {
 	// PSQL engine
 	if Config.Db.Engine == "psql" {
 
-		dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable search_path=%s", Config.Db.Psql.Host, Config.Db.Psql.Port, Config.Db.Psql.Username, Config.Db.Psql.Database, Config.Db.Psql.Password, Config.Db.Psql.Schema)
+		dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s search_path=%s", Config.Db.Psql.Host, Config.Db.Psql.Port, Config.Db.Psql.Username, Config.Db.Psql.Database, Config.Db.Psql.Password, Config.Db.Psql.SSLMode, Config.Db.Psql.Schema)
 
 		d.Engine, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
 			DisableForeignKeyConstraintWhenMigrating: true,
