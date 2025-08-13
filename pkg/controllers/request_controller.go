@@ -13,10 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/rs/zerolog/log"
-	"go.opentelemetry.io/otel"
 )
-
-var Tracer = otel.Tracer("pkg/controllers/requestController")
 
 type AccessRequestController struct {
 	Providers     map[string]models.ProviderConfig

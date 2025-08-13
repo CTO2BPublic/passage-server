@@ -7,7 +7,7 @@ auth:
     issuerUrl: https://dex.exampleorg.com
     clientId: passage-server
   jwt:
-    enabled: true
+    enabled: false
     tokenHeader: Authorization
     # headerPrefix: "Bearer "
     usernameClaim: username
@@ -36,10 +36,12 @@ events:
     numPartitions: 1
     replicationFactor: 1
   console:
-    enabled: false
+    enabled: true
+  database:
+    enabled: true
 
 log:
-  level: info
+  level: debug
   pretty: true
   caller: true
 
@@ -186,6 +188,48 @@ roles:
 
       - name: TeleportRo
         provider: teleport
+        runAsync: false
+        credentialRef:
+          name: teleport
+        parameters:
+          group: ro-role
+
+  - name: SRE Read Only Mock
+    description: Non privilleged access. Provides RO access to Gitlab, Teleport, Google and AWS
+    approvalRuleRef:
+      name: SRE approvers
+    tags:
+      - sre
+    annotations:
+      dashboard.passage.io/enabled: "true"
+      dashboard.passage.io/dataType: "sum"
+      dashboard.passage.io/widgetType: "statCard"
+      dashboard.passage.io/icon: "user"
+    providers:
+      - name: GitlabRo
+        provider: mock
+        credentialRef:
+          name: gitlab
+        parameters:
+          group: exampleorg/ro-group
+          level: Owner
+
+      - name: AwsRo
+        provider: mock
+        credentialRef:
+          name: aws
+        parameters:
+          group: ro-group
+
+      - name: GoogleRo
+        provider: mock
+        credentialRef:
+          name: google
+        parameters:
+          group: ro-access@exampleorg.com
+
+      - name: TeleportRo
+        provider: mock
         runAsync: false
         credentialRef:
           name: teleport

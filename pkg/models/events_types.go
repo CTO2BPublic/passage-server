@@ -1,4 +1,4 @@
-package eventdriver
+package models
 
 import (
 	"encoding/json"

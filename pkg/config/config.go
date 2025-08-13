@@ -62,9 +62,10 @@ type TracingConfig struct {
 }
 
 type EventsConfig struct {
-	Kafka   EventsKafkaConfig
-	Console EventsConsoleConfig
-	Data    EventsData
+	Kafka    EventsKafkaConfig
+	Console  EventsConsoleConfig
+	Database EventsDatabaseConfig
+	Data     EventsData
 }
 
 type EventsKafkaConfig struct {
@@ -76,6 +77,10 @@ type EventsKafkaConfig struct {
 }
 
 type EventsConsoleConfig struct {
+	Enabled bool
+}
+
+type EventsDatabaseConfig struct {
 	Enabled bool
 }
 
