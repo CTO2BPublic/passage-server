@@ -74,6 +74,7 @@ func (d *Database) AutoMigrate() {
 		models.AccessRequest{},
 		models.AccessRole{},
 		models.UserProfile{},
+		models.Event{},
 	)
 	if err != nil {
 		log.Fatal().Msg(err.Error())

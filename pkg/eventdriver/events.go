@@ -16,19 +16,19 @@ func (e *Events) AccessRequestCreated(ctx context.Context, data models.AccessReq
 	txid, _ := shared.GetTransactionID(ctx)
 	uid, _ := shared.GetUserID(ctx)
 
-	msg := Event{
+	msg := models.Event{
 		ID:            uuid.New().String(),
 		ParentID:      data.Id,
-		ParentType:    EventParentSystem,
+		ParentType:    models.EventParentSystem,
 		TransactionID: txid,
-		Tenant:        Config.Data.Tenant,
-		Attributes: EventAttributes{
-			Source: "passage-server/controllers",
-			Type:   fmt.Sprintf("%s.passage.accessRequest.created", Config.Data.TypePrefix),
+		Tenant:        Config.Events.Data.Tenant,
+		Attributes: models.EventAttributes{
+			Source: "passage-server",
+			Type:   fmt.Sprintf("%s.passage.accessRequest.created", Config.Events.Data.TypePrefix),
 			Date:   time.Now(),
 			Author: uid,
 		},
-		Message: fmt.Sprintf("[%s] [%s] Created AccessRequest: [%s] role [%s]", Config.Data.Tenant, uid, data.Id, data.RoleRef.Name),
+		Message: fmt.Sprintf("[%s] [%s] Created AccessRequest: [%s] role [%s]", Config.Events.Data.Tenant, uid, data.Id, data.RoleRef.Name),
 		Data: map[string]interface{}{
 			"resource": data,
 		},
@@ -43,19 +43,19 @@ func (e *Events) AccessRequestApproved(ctx context.Context, data models.AccessRe
 	txid, _ := shared.GetTransactionID(ctx)
 	uid, _ := shared.GetUserID(ctx)
 
-	msg := Event{
+	msg := models.Event{
 		ID:            uuid.New().String(),
 		ParentID:      data.Id,
-		ParentType:    EventParentSystem,
+		ParentType:    models.EventParentSystem,
 		TransactionID: txid,
-		Tenant:        Config.Data.Tenant,
-		Attributes: EventAttributes{
-			Source: "passage-server/pkg/controllers",
-			Type:   fmt.Sprintf("%s.passage.accessRequest.approved", Config.Data.TypePrefix),
+		Tenant:        Config.Events.Data.Tenant,
+		Attributes: models.EventAttributes{
+			Source: "passage-server",
+			Type:   fmt.Sprintf("%s.passage.accessRequest.approved", Config.Events.Data.TypePrefix),
 			Date:   time.Now(),
 			Author: uid,
 		},
-		Message: fmt.Sprintf("[%s] [%s] Approved AccessRequest [%s] Role [%s] added to user [%s]", Config.Data.Tenant, uid, data.Id, data.RoleRef.Name, data.Status.RequestedBy),
+		Message: fmt.Sprintf("[%s] [%s] Approved AccessRequest [%s] Role [%s] added to user [%s]", Config.Events.Data.Tenant, uid, data.Id, data.RoleRef.Name, data.Status.RequestedBy),
 		Data: map[string]interface{}{
 			"resource": data,
 		},
@@ -70,19 +70,19 @@ func (e *Events) AccessRequestExpired(ctx context.Context, data models.AccessReq
 	txid, _ := shared.GetTransactionID(ctx)
 	uid, _ := shared.GetUserID(ctx)
 
-	msg := Event{
+	msg := models.Event{
 		ID:            uuid.New().String(),
 		ParentID:      data.Id,
-		ParentType:    EventParentSystem,
+		ParentType:    models.EventParentSystem,
 		TransactionID: txid,
-		Tenant:        Config.Data.Tenant,
-		Attributes: EventAttributes{
-			Source: "passage-server/pkg/controllers",
-			Type:   fmt.Sprintf("%s.passage.accessRequest.expired", Config.Data.TypePrefix),
+		Tenant:        Config.Events.Data.Tenant,
+		Attributes: models.EventAttributes{
+			Source: "passage-server",
+			Type:   fmt.Sprintf("%s.passage.accessRequest.expired", Config.Events.Data.TypePrefix),
 			Date:   time.Now(),
 			Author: uid,
 		},
-		Message: fmt.Sprintf("[%s] AccessRequest [%s] expired. Role [%s] removed from user [%s]", Config.Data.Tenant, data.Id, data.RoleRef.Name, data.Status.RequestedBy),
+		Message: fmt.Sprintf("[%s] AccessRequest [%s] expired. Role [%s] removed from user [%s]", Config.Events.Data.Tenant, data.Id, data.RoleRef.Name, data.Status.RequestedBy),
 		Data: map[string]interface{}{
 			"resource": data,
 		},
@@ -97,19 +97,19 @@ func (e *Events) AccessRequestDeleted(ctx context.Context, data models.AccessReq
 	txid, _ := shared.GetTransactionID(ctx)
 	uid, _ := shared.GetUserID(ctx)
 
-	msg := Event{
+	msg := models.Event{
 		ID:            uuid.New().String(),
 		ParentID:      data.Id,
-		ParentType:    EventParentSystem,
+		ParentType:    models.EventParentSystem,
 		TransactionID: txid,
-		Tenant:        Config.Data.Tenant,
-		Attributes: EventAttributes{
-			Source: "passage-server/pkg/controllers",
-			Type:   fmt.Sprintf("%s.passage.accessRequest.deleted", Config.Data.TypePrefix),
+		Tenant:        Config.Events.Data.Tenant,
+		Attributes: models.EventAttributes{
+			Source: "passage-server",
+			Type:   fmt.Sprintf("%s.passage.accessRequest.deleted", Config.Events.Data.TypePrefix),
 			Date:   time.Now(),
 			Author: uid,
 		},
-		Message: fmt.Sprintf("[%s] [%s] Deleted AccessRequest [%s] Role [%s] User [%s]", Config.Data.Tenant, uid, data.Id, data.RoleRef.Name, data.Status.RequestedBy),
+		Message: fmt.Sprintf("[%s] [%s] Deleted AccessRequest [%s] Role [%s] User [%s]", Config.Events.Data.Tenant, uid, data.Id, data.RoleRef.Name, data.Status.RequestedBy),
 		Data: map[string]interface{}{
 			"resource": data,
 		},
@@ -123,19 +123,19 @@ func (e *Events) UserLoggedIn(ctx context.Context, claims models.ClaimsMap) erro
 	ctx = shared.WithTransactionID(ctx)
 	txid, _ := shared.GetTransactionID(ctx)
 
-	msg := Event{
+	msg := models.Event{
 		ID:            uuid.New().String(),
 		ParentID:      "",
-		ParentType:    EventParentSecurity,
+		ParentType:    models.EventParentSecurity,
 		TransactionID: txid,
-		Tenant:        Config.Data.Tenant,
-		Attributes: EventAttributes{
-			Source: "passage-server/pkg/middlewares/auth",
-			Type:   fmt.Sprintf("%s.passage.user.loggedIn", Config.Data.TypePrefix),
+		Tenant:        Config.Events.Data.Tenant,
+		Attributes: models.EventAttributes{
+			Source: "passage-server",
+			Type:   fmt.Sprintf("%s.passage.user.loggedIn", Config.Events.Data.TypePrefix),
 			Date:   time.Now(),
 			Author: "system",
 		},
-		Message: fmt.Sprintf("[%s] User [%s] logged in", Config.Data.Tenant, claims.GetString("username")),
+		Message: fmt.Sprintf("[%s] User [%s] logged in", Config.Events.Data.Tenant, claims.GetString("username")),
 		Data: map[string]interface{}{
 			"resource": claims,
 		},
@@ -149,19 +149,19 @@ func (e *Events) PermissionDenied(ctx context.Context, sub string, grp []string,
 	ctx = shared.WithTransactionID(ctx)
 	txid, _ := shared.GetTransactionID(ctx)
 
-	msg := Event{
+	msg := models.Event{
 		ID:            uuid.New().String(),
 		ParentID:      "",
-		ParentType:    EventParentSecurity,
+		ParentType:    models.EventParentSecurity,
 		TransactionID: txid,
-		Tenant:        Config.Data.Tenant,
-		Attributes: EventAttributes{
-			Source: "passage-server/pkg/middlewares/auth",
-			Type:   fmt.Sprintf("%s.passage.user.permissionDenied", Config.Data.TypePrefix),
+		Tenant:        Config.Events.Data.Tenant,
+		Attributes: models.EventAttributes{
+			Source: "passage-server",
+			Type:   fmt.Sprintf("%s.passage.user.permissionDenied", Config.Events.Data.TypePrefix),
 			Date:   time.Now(),
 			Author: "system",
 		},
-		Message: fmt.Sprintf("[%s] Permission denied: subj:%s obj:%s act:%s", Config.Data.Tenant, sub, obj, act),
+		Message: fmt.Sprintf("[%s] Permission denied: subj:%s obj:%s act:%s", Config.Events.Data.Tenant, sub, obj, act),
 		Data: map[string]interface{}{
 			"sub": sub,
 			"grp": grp,

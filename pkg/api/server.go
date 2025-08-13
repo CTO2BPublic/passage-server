@@ -38,10 +38,6 @@ func (s *Server) SetupEngineWithDefaults() *Server {
 		s.Engine.Use(tracing.NewTracingMidleware())
 	}
 
-	if Config.Events.Kafka.Enabled {
-		Event.NewDriver()
-	}
-
 	// Logger middleware will write the logs to gin.DefaultWriter even if you set with GIN_MODE=release.
 	s.Engine.Use(gin.LoggerWithConfig(gin.LoggerConfig{
 		SkipPaths: []string{"/healthz", "/readyz", "/livez"},
@@ -72,11 +68,14 @@ func (s *Server) SetupEngineWithDefaults() *Server {
 		Db.AutoMigrate()
 	}
 
+	Event.NewDriver()
+
 	// Initialize controllers
 	accessRoleController := controllers.NewAccessRoleController()
 	accessRequestController := controllers.NewAccessRequestController()
 	statusController := controllers.NewStatusController()
 	userController := controllers.NewUserController()
+	eventControlller := controllers.NewEventController()
 
 	// Define routes
 	rg := s.Engine.Group("")
@@ -106,8 +105,14 @@ func (s *Server) SetupEngineWithDefaults() *Server {
 		users.GET("/role-mappings", userController.GetRoleMappings)
 	}
 
-	s.Engine.GET("/userinfo", middlewares.Auth(), userController.UserInfo)
+	events := rg.Group("/events")
+	events.Use(middlewares.Auth())
+	{
+		events.GET("", eventControlller.List)
+		users.GET("/:ID", eventControlller.Get)
+	}
 
+	s.Engine.GET("/userinfo", middlewares.Auth(), userController.UserInfo)
 	s.Engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	s.Engine.GET("/healthz", statusController.Healthz)
 	s.Engine.GET("/readyz", statusController.Readyz)
