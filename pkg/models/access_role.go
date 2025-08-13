@@ -10,12 +10,13 @@ import (
 
 // Access role
 type AccessRole struct {
-	Id              string           `gorm:"primaryKey" json:"id,omitempty" example:"3b7af992-5a30-4ce1-821b-cac8194a230b"`
-	Name            string           `json:"name"`
-	Description     string           `json:"description"`
-	Tags            []string         `json:"tags" gorm:"serializer:json"`
-	Providers       []ProviderConfig `json:"providers" gorm:"serializer:json"` // Multiple access mappings for the role
-	ApprovalRuleRef ApprovalRuleRef  `json:"approvalRuleRef" gorm:"embedded;embeddedPrefix:approvalRuleRef_"`
+	Id              string            `gorm:"primaryKey" json:"id,omitempty" example:"3b7af992-5a30-4ce1-821b-cac8194a230b"`
+	Name            string            `json:"name"`
+	Description     string            `json:"description"`
+	Tags            []string          `json:"tags" gorm:"serializer:json"`
+	Annotations     map[string]string `json:"annotations" gorm:"serializer:json"`
+	Providers       []ProviderConfig  `json:"providers" gorm:"serializer:json"` // Multiple access mappings for the role
+	ApprovalRuleRef ApprovalRuleRef   `json:"approvalRuleRef" gorm:"embedded;embeddedPrefix:approvalRuleRef_"`
 }
 
 type ProviderConfig struct {
