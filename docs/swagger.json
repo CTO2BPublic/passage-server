@@ -267,6 +267,78 @@
                 }
             }
         },
+        "/events": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "List all events",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Events"
+                ],
+                "summary": "List events",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Event"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/events/{ID}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get single event by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "xxxx-xxxx-xxxx",
+                        "description": "Event id",
+                        "name": "ID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Event"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/healthz": {
             "get": {
                 "security": [
@@ -510,7 +582,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.User"
+                                "$ref": "#/definitions/models.AccessRequest"
                             }
                         }
                     }
@@ -587,6 +659,12 @@
         "models.AccessRole": {
             "type": "object",
             "properties": {
+                "annotations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
                 "approvalRuleRef": {
                     "$ref": "#/definitions/models.ApprovalRuleRef"
                 },
@@ -640,6 +718,47 @@
             "properties": {
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "models.Event": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "$ref": "#/definitions/models.EventAttributes"
+                },
+                "id": {
+                    "description": "Pod ID",
+                    "type": "string",
+                    "example": "0d2dab7cdcb4cf1d"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string",
+                    "example": "0d2dab7cdcb4cf1d"
+                }
+            }
+        },
+        "models.EventAttributes": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "example": "john.doe"
+                },
+                "date": {
+                    "type": "string",
+                    "example": "2022-02-28 18:03:49.750647+00"
+                },
+                "source": {
+                    "type": "string",
+                    "example": "sview-hook"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "gitlab-mr"
                 }
             }
         },
