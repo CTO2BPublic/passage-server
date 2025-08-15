@@ -267,6 +267,37 @@
                 }
             }
         },
+        "/activity-logs": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "List all events",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Activity logs"
+                ],
+                "summary": "List events",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ActivityLog"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/events": {
             "get": {
                 "security": [
@@ -699,6 +730,42 @@
                 "name": {
                     "type": "string",
                     "example": "SRE-PU-ACCESS"
+                }
+            }
+        },
+        "models.ActivityLog": {
+            "type": "object",
+            "properties": {
+                "approvedBy": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "eventId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "0d2dab7cdcb4cf1d"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "raisedBy": {
+                    "type": "string"
+                },
+                "requestId": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
                 }
             }
         },
