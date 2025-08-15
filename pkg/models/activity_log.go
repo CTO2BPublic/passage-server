@@ -45,6 +45,10 @@ func NewActivityLogFromEvent(e Event) (*ActivityLog, error) {
 		log.Message = strings.Replace(parts[1], ".", " ", -1)
 	}
 
+	if strings.Contains(log.Message, "Error") {
+		log.Severity = "warning"
+	}
+
 	return log, nil
 
 }

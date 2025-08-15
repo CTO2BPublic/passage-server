@@ -350,6 +350,7 @@ func (r *AccessRequestController) callRoleProvidersAsync(ctx context.Context, me
 			if method == "Approve" {
 				err := provider.GrantAccess(ctx, request)
 				if err != nil {
+					Event.AccessRequestApprovalError(ctx, *request, config, err)
 					errChan <- err
 					return
 				}
@@ -358,6 +359,7 @@ func (r *AccessRequestController) callRoleProvidersAsync(ctx context.Context, me
 			if method == "Expire" {
 				err := provider.RevokeAccess(ctx, request)
 				if err != nil {
+					Event.AccessRequestExpireError(ctx, *request, config, err)
 					errChan <- err
 					return
 				}
