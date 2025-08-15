@@ -64,6 +64,62 @@ func (e *Events) AccessRequestApproved(ctx context.Context, data models.AccessRe
 	return e.handleEvent(ctx, msg)
 }
 
+func (e *Events) AccessRequestApprovalError(ctx context.Context, data models.AccessRequest, provider models.ProviderConfig, err error) error {
+
+	ctx = shared.WithTransactionID(ctx)
+	txid, _ := shared.GetTransactionID(ctx)
+	uid, _ := shared.GetUserID(ctx)
+
+	msg := models.Event{
+		ID:            uuid.New().String(),
+		ParentID:      data.Id,
+		ParentType:    models.EventParentSystem,
+		TransactionID: txid,
+		Tenant:        Config.Events.Data.Tenant,
+		Attributes: models.EventAttributes{
+			Source: "passage-server",
+			Type:   fmt.Sprintf("%s.passage.accessRequest.approvalError", Config.Events.Data.TypePrefix),
+			Date:   time.Now(),
+			Author: uid,
+		},
+		Message: fmt.Sprintf("[%s] [%s] There was an error approving AccessRequest [%s] Role [%s] provider [%s] error: [%s]", Config.Events.Data.Tenant, uid, data.Id, data.RoleRef.Name, provider.Name, err.Error()),
+		Data: map[string]interface{}{
+			"resource": data,
+			"error":    err,
+		},
+	}
+
+	return e.handleEvent(ctx, msg)
+}
+
+func (e *Events) AccessRequestExpireError(ctx context.Context, data models.AccessRequest, provider models.ProviderConfig, err error) error {
+
+	ctx = shared.WithTransactionID(ctx)
+	txid, _ := shared.GetTransactionID(ctx)
+	uid, _ := shared.GetUserID(ctx)
+
+	msg := models.Event{
+		ID:            uuid.New().String(),
+		ParentID:      data.Id,
+		ParentType:    models.EventParentSystem,
+		TransactionID: txid,
+		Tenant:        Config.Events.Data.Tenant,
+		Attributes: models.EventAttributes{
+			Source: "passage-server",
+			Type:   fmt.Sprintf("%s.passage.accessRequest.expireError", Config.Events.Data.TypePrefix),
+			Date:   time.Now(),
+			Author: uid,
+		},
+		Message: fmt.Sprintf("[%s] [%s] There was an error expiring AccessRequest [%s] Role [%s] provider [%s] error: [%s]", Config.Events.Data.Tenant, uid, data.Id, data.RoleRef.Name, provider.Name, err.Error()),
+		Data: map[string]interface{}{
+			"resource": data,
+			"error":    err,
+		},
+	}
+
+	return e.handleEvent(ctx, msg)
+}
+
 func (e *Events) AccessRequestExpired(ctx context.Context, data models.AccessRequest) error {
 
 	ctx = shared.WithTransactionID(ctx)
