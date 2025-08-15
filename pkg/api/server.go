@@ -76,6 +76,7 @@ func (s *Server) SetupEngineWithDefaults() *Server {
 	statusController := controllers.NewStatusController()
 	userController := controllers.NewUserController()
 	eventControlller := controllers.NewEventController()
+	activityLogController := controllers.NewActivityLogController()
 
 	// Define routes
 	rg := s.Engine.Group("")
@@ -109,7 +110,13 @@ func (s *Server) SetupEngineWithDefaults() *Server {
 	events.Use(middlewares.Auth())
 	{
 		events.GET("", eventControlller.List)
-		users.GET("/:ID", eventControlller.Get)
+		events.GET("/:ID", eventControlller.Get)
+	}
+
+	activityLog := rg.Group("/activity-logs")
+	activityLog.Use(middlewares.Auth())
+	{
+		activityLog.GET("", activityLogController.List)
 	}
 
 	s.Engine.GET("/userinfo", middlewares.Auth(), userController.UserInfo)

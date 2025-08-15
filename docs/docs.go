@@ -275,6 +275,109 @@ const docTemplate = `{
                 }
             }
         },
+        "/activity-logs": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "List all events",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Activity logs"
+                ],
+                "summary": "List events",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ActivityLog"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/events": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "List all events",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Events"
+                ],
+                "summary": "List events",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Event"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/events/{ID}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get single event by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "xxxx-xxxx-xxxx",
+                        "description": "Event id",
+                        "name": "ID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Event"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/healthz": {
             "get": {
                 "security": [
@@ -518,7 +621,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.User"
+                                "$ref": "#/definitions/models.AccessRequest"
                             }
                         }
                     }
@@ -595,6 +698,12 @@ const docTemplate = `{
         "models.AccessRole": {
             "type": "object",
             "properties": {
+                "annotations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
                 "approvalRuleRef": {
                     "$ref": "#/definitions/models.ApprovalRuleRef"
                 },
@@ -632,6 +741,42 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ActivityLog": {
+            "type": "object",
+            "properties": {
+                "approvedBy": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "eventId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "0d2dab7cdcb4cf1d"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "raisedBy": {
+                    "type": "string"
+                },
+                "requestId": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "models.ApprovalRuleRef": {
             "type": "object",
             "properties": {
@@ -648,6 +793,47 @@ const docTemplate = `{
             "properties": {
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "models.Event": {
+            "type": "object",
+            "properties": {
+                "attributes": {
+                    "$ref": "#/definitions/models.EventAttributes"
+                },
+                "id": {
+                    "description": "Pod ID",
+                    "type": "string",
+                    "example": "0d2dab7cdcb4cf1d"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string",
+                    "example": "0d2dab7cdcb4cf1d"
+                }
+            }
+        },
+        "models.EventAttributes": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string",
+                    "example": "john.doe"
+                },
+                "date": {
+                    "type": "string",
+                    "example": "2022-02-28 18:03:49.750647+00"
+                },
+                "source": {
+                    "type": "string",
+                    "example": "sview-hook"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "gitlab-mr"
                 }
             }
         },

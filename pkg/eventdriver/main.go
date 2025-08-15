@@ -51,8 +51,12 @@ func (e *Events) handleEvent(ctx context.Context, data interface{}) error {
 
 	if Config.Events.Database.Enabled {
 		Db.InsertEvent(ctx, event)
+
+		activityLog, err := models.NewActivityLogFromEvent(event)
+		if err == nil {
+			Db.InsertActivityLog(ctx, *activityLog)
+		}
 	}
-	log.Debug().Msg("handleEvent called end") // 👈
 
 	return nil
 }

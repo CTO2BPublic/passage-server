@@ -46,6 +46,10 @@ definitions:
     type: object
   models.AccessRole:
     properties:
+      annotations:
+        additionalProperties:
+          type: string
+        type: object
       approvalRuleRef:
         $ref: '#/definitions/models.ApprovalRuleRef'
       description:
@@ -71,6 +75,30 @@ definitions:
         example: SRE-PU-ACCESS
         type: string
     type: object
+  models.ActivityLog:
+    properties:
+      approvedBy:
+        type: string
+      date:
+        type: string
+      eventId:
+        type: string
+      id:
+        example: 0d2dab7cdcb4cf1d
+        type: string
+      message:
+        type: string
+      raisedBy:
+        type: string
+      requestId:
+        type: string
+      role:
+        type: string
+      severity:
+        type: string
+      type:
+        type: string
+    type: object
   models.ApprovalRuleRef:
     properties:
       name:
@@ -81,6 +109,35 @@ definitions:
   models.CredentialRef:
     properties:
       name:
+        type: string
+    type: object
+  models.Event:
+    properties:
+      attributes:
+        $ref: '#/definitions/models.EventAttributes'
+      id:
+        description: Pod ID
+        example: 0d2dab7cdcb4cf1d
+        type: string
+      message:
+        type: string
+      transactionId:
+        example: 0d2dab7cdcb4cf1d
+        type: string
+    type: object
+  models.EventAttributes:
+    properties:
+      author:
+        example: john.doe
+        type: string
+      date:
+        example: 2022-02-28 18:03:49.750647+00
+        type: string
+      source:
+        example: sview-hook
+        type: string
+      type:
+        example: gitlab-mr
         type: string
     type: object
   models.Health:
@@ -301,6 +358,70 @@ paths:
       summary: Create role
       tags:
       - Access roles
+  /activity-logs:
+    get:
+      consumes:
+      - application/json
+      description: List all events
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ActivityLog'
+            type: array
+      security:
+      - JWT: []
+      summary: List events
+      tags:
+      - Activity logs
+  /events:
+    get:
+      consumes:
+      - application/json
+      description: List all events
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Event'
+            type: array
+      security:
+      - JWT: []
+      summary: List events
+      tags:
+      - Events
+  /events/{ID}:
+    get:
+      consumes:
+      - application/json
+      description: Get single event by id
+      parameters:
+      - default: xxxx-xxxx-xxxx
+        description: Event id
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Event'
+            type: array
+      security:
+      - JWT: []
+      summary: Get event
+      tags:
+      - Events
   /healthz:
     get:
       consumes:
@@ -447,7 +568,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.User'
+              $ref: '#/definitions/models.AccessRequest'
             type: array
       security:
       - JWT: []
