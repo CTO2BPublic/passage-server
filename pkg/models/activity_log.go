@@ -31,7 +31,7 @@ func NewActivityLogFromEvent(e Event) (*ActivityLog, error) {
 
 	log := &ActivityLog{
 		ID:         uuid.NewString(),
-		Date:       request.CreatedAt,
+		Date:       e.Attributes.Date,
 		Severity:   "info",
 		RaisedBy:   request.Status.RequestedBy,
 		ApprovedBy: request.Status.ApprovedBy,
