@@ -25,7 +25,7 @@ func (d *Database) SelectActivityLog(ctx context.Context, data models.ActivityLo
 }
 
 func (d *Database) SelectActivityLogs(ctx context.Context) (result []models.ActivityLog, err error) {
-	q := d.Engine.WithContext(ctx).Omit("data").Find(&result)
+	q := d.Engine.WithContext(ctx).Order("date desc").Find(&result)
 
 	return result, q.Error
 }

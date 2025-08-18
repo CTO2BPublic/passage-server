@@ -10,7 +10,7 @@ import (
 
 type ActivityLog struct {
 	ID         string    `gorm:"primaryKey" json:"id" example:"0d2dab7cdcb4cf1d"`
-	Date       time.Time `json:"date"`
+	Date       time.Time `gorm:"index" json:"date"`
 	Severity   string    `json:"severity"`
 	RaisedBy   string    `json:"raisedBy"`
 	ApprovedBy string    `json:"approvedBy"`
