@@ -81,6 +81,9 @@ creds:
     data:
       credentialsfile: creds/teleport-identity-file
       hostname: teleport.exampleorg.com
+  cloudflare:
+    data:
+      credentialsfile: creds/cloudflare-api-token
 
 approvalRules:
   - name: SRE approvers
@@ -193,6 +196,13 @@ roles:
           name: teleport
         parameters:
           group: ro-role
+      
+      - name: CloudflareRo
+        provider: cloudflare
+        credentialRef:
+          name: cloudflare
+        parameters:
+          group: sre-read-only
 
   - name: SRE Read Only Mock
     description: Non privilleged access. Provides RO access to Gitlab, Teleport, Google and AWS
