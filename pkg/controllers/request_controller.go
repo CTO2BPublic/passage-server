@@ -230,7 +230,7 @@ func (r *AccessRequestController) Approve(c *gin.Context) {
 	}
 
 	// Call role providers
-	err = r.callRoleProvidersAsync(ctx, "Approve", accessRequest, accessRole)
+	err = r.callRoleProvidersAsync(ctx, providerMethodApprove, accessRequest, accessRole)
 
 	// Update request status
 	accessRequest.
@@ -292,7 +292,7 @@ func (r *AccessRequestController) Expire(c *gin.Context) {
 	}
 
 	// Call role providers
-	err = r.callRoleProvidersAsync(ctx, "Expire", accessRequest, accessRole)
+	err = r.callRoleProvidersAsync(ctx, providerMethodExpire, accessRequest, accessRole)
 
 	// Update request status
 	accessRequest.
@@ -311,7 +311,14 @@ func (r *AccessRequestController) Expire(c *gin.Context) {
 	c.JSON(errors.StatusUpdated())
 }
 
-func (r *AccessRequestController) callRoleProvidersAsync(ctx context.Context, method string, request *models.AccessRequest, role models.AccessRole) (err error) {
+type providerMethod int
+
+const (
+	providerMethodApprove providerMethod = iota
+	providerMethodExpire
+)
+
+func (r *AccessRequestController) callRoleProvidersAsync(ctx context.Context, method providerMethod, request *models.AccessRequest, role models.AccessRole) (err error) {
 
 	ctx, span := tracing.NewSpanWrapper(ctx, "controllers.RequestController.callRoleProviders")
 	defer span.End()
@@ -347,22 +354,23 @@ func (r *AccessRequestController) callRoleProvidersAsync(ctx context.Context, me
 				Str("Provider", config.Name).
 				Msg("Calling provider")
 
-			if method == "Approve" {
+			switch method {
+			case providerMethodApprove:
 				err := provider.GrantAccess(ctx, request)
 				if err != nil {
 					Event.AccessRequestApprovalError(ctx, *request, config, err)
 					errChan <- err
 					return
 				}
-			}
-
-			if method == "Expire" {
+			case providerMethodExpire:
 				err := provider.RevokeAccess(ctx, request)
 				if err != nil {
 					Event.AccessRequestExpireError(ctx, *request, config, err)
 					errChan <- err
 					return
 				}
+			default:
+				log.Error().Msgf("unknown provider method: %d", method)
 			}
 		}
 
