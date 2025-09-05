@@ -29,7 +29,7 @@ func (a *ApiClient) doRequest(Req ClientRequest) (ResponseData []byte, StatusCod
 	}
 
 	req.Header.Set("Content-type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", strings.Replace(a.Token, "\n", "", -1)))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", strings.ReplaceAll(a.Token, "\n", "")))
 
 	response, err := client.Do(req)
 	if err != nil {

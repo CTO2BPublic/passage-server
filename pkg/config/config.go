@@ -139,8 +139,8 @@ func InitConfig() error {
 
 	// ENV provider
 	err := k.Load(env.Provider("PASSAGE_", ".", func(s string) string {
-		return strings.Replace(strings.ToLower(
-			strings.TrimPrefix(s, "PASSAGE_")), "_", ".", -1)
+		return strings.ReplaceAll(strings.ToLower(
+			strings.TrimPrefix(s, "PASSAGE_")), "_", ".")
 	}), nil)
 	if err != nil {
 		return fmt.Errorf("error loading config from ENV: %v", err)

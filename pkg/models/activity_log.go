@@ -42,7 +42,7 @@ func NewActivityLogFromEvent(e Event) (*ActivityLog, error) {
 	}
 	parts := strings.Split(e.Attributes.Type, "passage.")
 	if len(parts) > 0 {
-		log.Message = strings.Replace(parts[1], ".", " ", -1)
+		log.Message = strings.ReplaceAll(parts[1], ".", " ")
 	}
 
 	if strings.Contains(log.Message, "Error") {
