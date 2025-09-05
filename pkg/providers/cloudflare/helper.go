@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime"
 
 	"github.com/cloudflare/cloudflare-go/v6"
 	"github.com/cloudflare/cloudflare-go/v6/accounts"
 	"github.com/cloudflare/cloudflare-go/v6/iam"
 	"github.com/cloudflare/cloudflare-go/v6/shared"
 	"go.opentelemetry.io/otel/attribute"
+	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -117,6 +119,34 @@ func (p *CloudflareProvider) addAccountMember(ctx context.Context, email string)
 	return nil
 }
 
+// removeAccountMember removes a member from the account of the provider
+func (p *CloudflareProvider) removeAccountMember(ctx context.Context, email string) error {
+	ctx, span := startSpan(ctx, "removeAccountMember")
+	span.SetAttributes(
+		attribute.String("peer.service", "cloudflare"),
+		attribute.String("span.kind", "client"),
+	)
+	defer span.End()
+
+	member, err := p.findMember(ctx, email)
+	if err != nil {
+		// If the member is not found, nothing else to do
+		if errors.Is(err, errMemberNotFound) {
+			return nil
+		}
+		return err
+	}
+
+	_, err = p.client.Accounts.Members.Delete(ctx, member.ID, accounts.MemberDeleteParams{
+		AccountID: cloudflare.F(p.accountID),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to delete member %s from account %s: %w", email, p.accountID, err)
+	}
+
+	return nil
+}
+
 // addGroupMember adds an account member to a user group
 func (p *CloudflareProvider) addGroupMember(ctx context.Context, groupID string, username string) error {
 	ctx, span := startSpan(ctx, "addGroupMember")
@@ -194,6 +224,88 @@ func (p *CloudflareProvider) isGroupMember(ctx context.Context, groupID, usernam
 	}
 	if err := iter.Err(); err != nil {
 		return false, fmt.Errorf("failed to list account members: %w", err)
+	}
+
+	return false, nil
+}
+
+// memberGroups retrieves all groups a member belongs to concurrently
+func (p *CloudflareProvider) memberGroups(ctx context.Context) (map[string][]iam.UserGroupListResponse, error) {
+	groups := []iam.UserGroupListResponse{}
+
+	iter := p.client.IAM.UserGroups.ListAutoPaging(ctx, iam.UserGroupListParams{
+		AccountID: cloudflare.F(p.accountID),
+	})
+	for iter.Next() {
+		group := iter.Current()
+		groups = append(groups, group)
+	}
+	if err := iter.Err(); err != nil {
+		return nil, fmt.Errorf("failed to list user groups: %w", err)
+	}
+
+	g, gctx := errgroup.WithContext(ctx)
+	g.SetLimit(runtime.NumCPU())
+
+	membersGroup := make(map[string][]iam.UserGroupListResponse)
+	type memberGroup struct {
+		Email string
+		Group iam.UserGroupListResponse
+	}
+	c := make(chan memberGroup, 1)
+
+	go func() {
+		for mg := range c {
+			_, exists := membersGroup[mg.Email]
+			if !exists {
+				membersGroup[mg.Email] = []iam.UserGroupListResponse{}
+			}
+			membersGroup[mg.Email] = append(membersGroup[mg.Email], mg.Group)
+		}
+	}()
+
+	for _, group := range groups {
+		g.Go(func() error {
+			iter := p.client.IAM.UserGroups.Members.ListAutoPaging(gctx, group.ID, iam.UserGroupMemberListParams{
+				AccountID: cloudflare.F(p.accountID),
+			})
+
+			for iter.Next() {
+				member := iter.Current()
+				c <- memberGroup{
+					Email: member.Email,
+					Group: group,
+				}
+			}
+
+			if err := iter.Err(); err != nil {
+				return fmt.Errorf("failed to list account members: %w", err)
+			}
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+	close(c)
+
+	return membersGroup, nil
+}
+
+// canMemberBeRemoved checks if a member can be removed from the account
+// a member can be removed if it is not part of any user group anymore
+func (p *CloudflareProvider) canMemberBeRemoved(ctx context.Context, username string) (bool, error) {
+
+	memberGroups, err := p.memberGroups(ctx)
+	if err != nil {
+		return false, fmt.Errorf("failed to list member groups: %w", err)
+	}
+
+	_, exists := memberGroups[username]
+	if !exists {
+		// user is not in any group, it can be removed
+		return true, nil
 	}
 
 	return false, nil
