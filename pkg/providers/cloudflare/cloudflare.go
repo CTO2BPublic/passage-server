@@ -185,7 +185,7 @@ func (p *CloudflareProvider) ListUsersWithAccess(ctx context.Context, role model
 
 	for page != nil {
 		for _, member := range page.Result {
-			userEmails = append(userEmails, member.ID)
+			userEmails = append(userEmails, member.Email)
 		}
 		page, err = page.GetNextPage()
 	}
