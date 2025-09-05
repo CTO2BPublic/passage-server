@@ -61,7 +61,6 @@ func NewTeleportProvider(ctx context.Context, config models.ProviderConfig) (*Te
 func (a *TeleportProvider) GrantAccess(ctx context.Context, request *models.AccessRequest) error {
 	ctx, span := tracing.NewSpanWrapper(ctx, "providers.teleport.GrantAccess")
 	defer span.End()
-	defer a.Client.Close()
 
 	parameters := a.Parameters
 
@@ -94,7 +93,6 @@ func (a *TeleportProvider) GrantAccess(ctx context.Context, request *models.Acce
 func (a *TeleportProvider) RevokeAccess(ctx context.Context, request *models.AccessRequest) error {
 	_, span := tracing.NewSpanWrapper(ctx, "providers.teleport.RevokeAccess")
 	defer span.End()
-	defer a.Client.Close()
 
 	parameters := a.Parameters
 	err := a.removeRoleFromUser(ctx, parameters.Username, parameters.Group)
