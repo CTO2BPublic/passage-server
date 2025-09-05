@@ -51,7 +51,7 @@ func NewTracer() (*sdktrace.TracerProvider, error) {
 		}
 	case "grpc":
 		// Create a gRPC connection to the telemetry collector
-		conn, err := grpc.DialContext(ctx, Config.Tracing.URL,
+		conn, err := grpc.NewClient(Config.Tracing.URL,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
 			grpc.WithBlock(),
 		)
