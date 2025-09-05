@@ -94,7 +94,7 @@ func GetTracer() *sdktrace.TracerProvider {
 	return tracerProvider
 }
 
-func NewTracingMidleware() gin.HandlerFunc {
+func NewTracingMiddleware() gin.HandlerFunc {
 	return otelgin.Middleware(Config.Tracing.ServiceName)
 }
 
