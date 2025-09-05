@@ -1,6 +1,7 @@
 package cloudflare
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -46,6 +47,7 @@ func NewCloudflareProvider(ctx context.Context, config models.ProviderConfig) (*
 	if err != nil {
 		return nil, fmt.Errorf("failed to read apiToken from file: %w", err)
 	}
+	apiToken = bytes.TrimSpace(apiToken)
 
 	accountID, ok := config.Parameters["accountID"]
 	if !ok {
