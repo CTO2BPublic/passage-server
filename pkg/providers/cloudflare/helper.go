@@ -72,7 +72,7 @@ func (p *CloudflareProvider) findMember(ctx context.Context, email string) (shar
 
 // addAccountMember adds a new member to the account of the provider
 // the member is invited with minimal account access possible
-func (p *CloudflareProvider) addAccountMember(ctx context.Context, email string) error {
+func (p *CloudflareProvider) addAccountMember(ctx context.Context, email string) (shared.Member, error) {
 	ctx, span := startSpan(ctx, "addAccountMember")
 	span.SetAttributes(
 		attribute.String("peer.service", "cloudflare"),
@@ -96,14 +96,14 @@ func (p *CloudflareProvider) addAccountMember(ctx context.Context, email string)
 		}
 	}
 	if iter.Err() != nil {
-		return fmt.Errorf("failed to list account roles: %w", iter.Err())
+		return shared.Member{}, fmt.Errorf("failed to list account roles: %w", iter.Err())
 	}
 
 	if roleID == "" {
-		return fmt.Errorf("role %q not found in account %s", roleName, p.accountID)
+		return shared.Member{}, fmt.Errorf("role %q not found in account %s", roleName, p.accountID)
 	}
 
-	_, err := p.client.Accounts.Members.New(ctx, accounts.MemberNewParams{
+	member, err := p.client.Accounts.Members.New(ctx, accounts.MemberNewParams{
 		AccountID: cloudflare.F(p.accountID),
 		Body: accounts.MemberNewParamsBodyIAMCreateMemberWithRoles{
 			Email: cloudflare.F(email),
@@ -111,10 +111,10 @@ func (p *CloudflareProvider) addAccountMember(ctx context.Context, email string)
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("failed to invite member %s to account %s: %w", email, p.accountID, err)
+		return shared.Member{}, fmt.Errorf("failed to invite member %s to account %s: %w", email, p.accountID, err)
 	}
 
-	return nil
+	return *member, nil
 }
 
 // addGroupMember adds an account member to a user group
@@ -132,7 +132,8 @@ func (p *CloudflareProvider) addGroupMember(ctx context.Context, groupID string,
 	}
 
 	if errors.Is(err, errMemberNotFound) {
-		if err := p.addAccountMember(ctx, username); err != nil {
+		member, err = p.addAccountMember(ctx, username)
+		if err != nil {
 			return err
 		}
 	}
