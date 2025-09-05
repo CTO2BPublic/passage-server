@@ -179,18 +179,16 @@ func (p *CloudflareProvider) ListUsersWithAccess(ctx context.Context, role model
 
 	userEmails := []string{}
 
-	page, err := p.client.IAM.UserGroups.Members.List(ctx, p.groupID, iam.UserGroupMemberListParams{
+	iter := p.client.IAM.UserGroups.Members.ListAutoPaging(ctx, p.groupID, iam.UserGroupMemberListParams{
 		AccountID: cloudflare.F(p.accountID),
 	})
 
-	for page != nil {
-		for _, member := range page.Result {
-			userEmails = append(userEmails, member.Email)
-		}
-		page, err = page.GetNextPage()
+	for iter.Next() {
+		member := iter.Current()
+		userEmails = append(userEmails, member.Email)
 	}
-	if err != nil {
-		return nil, err
+	if err := iter.Err(); err != nil {
+		return nil, fmt.Errorf("failed to list account members: %w", err)
 	}
 
 	return userEmails, nil
