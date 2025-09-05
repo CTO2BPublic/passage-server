@@ -95,6 +95,23 @@ func ErrorDatabaseInsert(err error) (code int, body gin.H) {
 
 //	{
 //		"type":   "/errors/database",
+//		"title":  "Failed to insert into database",
+//		"status": http.StatusBadRequest,
+//		"error":  err.Error(),
+//	}
+func ErrorDatabaseUpdate(err error) (code int, body gin.H) {
+	body = gin.H{
+		"type":   "/errors/database",
+		"title":  "Failed to update database",
+		"status": http.StatusBadRequest,
+		"error":  err.Error(),
+	}
+	log.Error().Msg(fmt.Sprintf("%+v", body))
+	return http.StatusBadRequest, body
+}
+
+//	{
+//		"type":   "/errors/database",
 //		"title":  "Failed to query the database",
 //		"status": http.StatusBadRequest,
 //		"error":  err.Error(),

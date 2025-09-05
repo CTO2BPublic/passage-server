@@ -36,7 +36,7 @@ func (a *ApiClient) doRequest(Req ClientRequest) (ResponseData []byte, StatusCod
 		return nil, 0, err
 	}
 
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 
 	responseData, _ := io.ReadAll(response.Body)
 

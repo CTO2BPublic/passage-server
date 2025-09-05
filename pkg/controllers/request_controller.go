@@ -103,10 +103,15 @@ func (r *AccessRequestController) Create(c *gin.Context) {
 	}
 
 	// Save it to DB
-	Db.InsertAccessRequest(ctx, data)
+	if err := Db.InsertAccessRequest(ctx, data); err != nil {
+		c.AbortWithStatusJSON(errors.ErrorDatabaseInsert(err))
+		return
+	}
 
 	// Fire creation event
-	Event.AccessRequestCreated(ctx, data)
+	if err := Event.AccessRequestCreated(ctx, data); err != nil {
+		log.Error().Err(err).Msg("failed to fire AccessRequestCreated event")
+	}
 
 	c.JSON(errors.StatusCreated())
 }
@@ -184,7 +189,9 @@ func (r *AccessRequestController) Delete(c *gin.Context) {
 		return
 	}
 
-	Event.AccessRequestDeleted(ctx, *accessRequest)
+	if err := Event.AccessRequestDeleted(ctx, *accessRequest); err != nil {
+		log.Error().Err(err).Msg("failed to fire AccessRequestDeleted event")
+	}
 
 	c.JSON(errors.StatusDeleted())
 }
@@ -231,21 +238,24 @@ func (r *AccessRequestController) Approve(c *gin.Context) {
 
 	// Call role providers
 	err = r.callRoleProvidersAsync(ctx, providerMethodApprove, accessRequest, accessRole)
+	// Partial success
+	if err != nil {
+		c.AbortWithStatusJSON(errors.AccessProviderCallPartiallyFailed(err))
+		return
+	}
 
 	// Update request status
 	accessRequest.
 		SetStatusApprove(uid).
 		SetTraceId(ctx)
 
-	Db.UpdateAccessRequest(ctx, accessRequest)
+	if err := Db.UpdateAccessRequest(ctx, accessRequest); err != nil {
+		c.AbortWithStatusJSON(errors.ErrorDatabaseUpdate(err))
+	}
 
 	// Fire approval event
-	Event.AccessRequestApproved(ctx, *accessRequest)
-
-	// Partial success
-	if err != nil {
-		c.AbortWithStatusJSON(errors.AccessProviderCallPartiallyFailed(err))
-		return
+	if err := Event.AccessRequestApproved(ctx, *accessRequest); err != nil {
+		log.Error().Err(err).Msg("failed to fire AccessRequestApproved event")
 	}
 
 	c.JSON(errors.StatusUpdated())
@@ -293,19 +303,23 @@ func (r *AccessRequestController) Expire(c *gin.Context) {
 
 	// Call role providers
 	err = r.callRoleProvidersAsync(ctx, providerMethodExpire, accessRequest, accessRole)
+	if err != nil {
+		c.AbortWithStatusJSON(errors.AccessProviderCallPartiallyFailed(err))
+		return
+	}
 
 	// Update request status
 	accessRequest.
 		SetStatusExpired().
 		SetTraceId(ctx)
 
-	Db.UpdateAccessRequest(ctx, accessRequest)
-
-	Event.AccessRequestExpired(ctx, *accessRequest)
-
-	if err != nil {
-		c.AbortWithStatusJSON(errors.AccessProviderCallPartiallyFailed(err))
+	if err := Db.UpdateAccessRequest(ctx, accessRequest); err != nil {
+		c.AbortWithStatusJSON(errors.ErrorDatabaseUpdate(err))
 		return
+	}
+
+	if err := Event.AccessRequestExpired(ctx, *accessRequest); err != nil {
+		log.Error().Err(err).Msg("failed to fire AccessRequestExpired event")
 	}
 
 	c.JSON(errors.StatusUpdated())
@@ -358,14 +372,14 @@ func (r *AccessRequestController) callRoleProvidersAsync(ctx context.Context, me
 			case providerMethodApprove:
 				err := provider.GrantAccess(ctx, request)
 				if err != nil {
-					Event.AccessRequestApprovalError(ctx, *request, config, err)
+					_ = Event.AccessRequestApprovalError(ctx, *request, config, err)
 					errChan <- err
 					return
 				}
 			case providerMethodExpire:
 				err := provider.RevokeAccess(ctx, request)
 				if err != nil {
-					Event.AccessRequestExpireError(ctx, *request, config, err)
+					_ = Event.AccessRequestExpireError(ctx, *request, config, err)
 					errChan <- err
 					return
 				}

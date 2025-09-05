@@ -2,6 +2,7 @@ package kafkadriver
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/CTO2BPublic/passage-server/pkg/config"
@@ -20,7 +21,7 @@ var Config = config.GetConfig().Events.Kafka
 var Tracer = otel.Tracer("pkg/kafkadriver")
 
 // Setup Initialize Kafka client
-func (k *Kafka) NewClient() *Kafka {
+func (k *Kafka) NewClient() (*Kafka, error) {
 
 	log.Info().Msg("[Kafka] Creating client")
 
@@ -42,7 +43,9 @@ func (k *Kafka) NewClient() *Kafka {
 	broker := sarama.NewBroker(Config.Hostname)
 	brokerConfig := sarama.NewConfig()
 
-	broker.Open(brokerConfig)
+	if err := broker.Open(brokerConfig); err != nil {
+		return nil, fmt.Errorf("failed to open broker connection: %w", err)
+	}
 
 	request := sarama.CreateTopicsRequest{
 		Timeout: time.Second * 15,
@@ -58,6 +61,7 @@ func (k *Kafka) NewClient() *Kafka {
 	resp, err := broker.CreateTopics(&request)
 	if err != nil {
 		log.Error().Msgf("[Kafka] Failed to create topics: %s", err.Error())
+		return nil, fmt.Errorf("failed to create topics: %w", err)
 	}
 
 	if len(resp.TopicErrors) > 0 {
@@ -67,7 +71,7 @@ func (k *Kafka) NewClient() *Kafka {
 	}
 
 	k.Conn = producer
-	return k
+	return k, nil
 }
 
 func GetDriver() *Kafka {
