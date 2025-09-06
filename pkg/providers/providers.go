@@ -20,20 +20,40 @@ type Provider interface {
 	IsAccessExpired(ctx context.Context, request *models.AccessRequest) (bool, error)
 }
 
+type ProviderKind string
+
+const (
+	ProviderKindMock       ProviderKind = "mock"
+	ProviderKindGitlab     ProviderKind = "gitlab"
+	ProviderKindGoogle     ProviderKind = "google"
+	ProviderKindTeleport   ProviderKind = "teleport"
+	ProviderKindAWS        ProviderKind = "aws"
+	ProviderKindCloudflare ProviderKind = "cloudflare"
+)
+
+var allProviderKinds = []ProviderKind{
+	ProviderKindMock,
+	ProviderKindGitlab,
+	ProviderKindGoogle,
+	ProviderKindTeleport,
+	ProviderKindAWS,
+	ProviderKindCloudflare,
+}
+
 func NewProvider(ctx context.Context, providerConfig models.ProviderConfig) (Provider, error) {
 
 	switch providerConfig.Provider {
-	case "mock":
+	case string(ProviderKindMock):
 		return mockp.NewMockProvider(ctx, providerConfig)
-	case "aws":
+	case string(ProviderKindAWS):
 		return aws.NewAWSProvider(ctx, providerConfig)
-	case "gitlab":
+	case string(ProviderKindGitlab):
 		return gitlab.NewGitlabProvider(ctx, providerConfig)
-	case "google":
+	case string(ProviderKindGoogle):
 		return google.NewGoogleProvider(ctx, providerConfig)
-	case "teleport":
+	case string(ProviderKindTeleport):
 		return teleport.NewTeleportProvider(ctx, providerConfig)
-	case "cloudflare":
+	case string(ProviderKindCloudflare):
 		return cloudflare.NewCloudflareProvider(ctx, providerConfig)
 	default:
 		return nil, fmt.Errorf("unsupported provider type: %s", providerConfig.Provider)
@@ -41,13 +61,14 @@ func NewProvider(ctx context.Context, providerConfig models.ProviderConfig) (Pro
 }
 
 func NewProviderUsernames() models.ProviderUsernames {
-	return models.ProviderUsernames{
-		ProviderUsernames: map[string]string{
-			"gitlab":   "",
-			"teleport": "",
-			"google":   "",
-			"aws":      "",
-			"azure":    "",
-		},
+	p := models.ProviderUsernames{
+		ProviderUsernames: make(map[string]string, len(allProviderKinds)),
 	}
+	for _, kind := range allProviderKinds {
+		// Initialize with empty string
+		// This ensures that all providers are present in the map
+		// even if they are not used
+		p.ProviderUsernames[string(kind)] = ""
+	}
+	return p
 }
