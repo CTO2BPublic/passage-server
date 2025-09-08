@@ -53,7 +53,6 @@ func NewTracer() (*sdktrace.TracerProvider, error) {
 		// Create a gRPC connection to the telemetry collector
 		conn, err := grpc.NewClient(Config.Tracing.URL,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
-			grpc.WithBlock(),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create gRPC connection to collector: %w", err)
