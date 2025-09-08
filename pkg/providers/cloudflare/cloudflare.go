@@ -159,6 +159,17 @@ func (p *CloudflareProvider) RevokeAccess(ctx context.Context, request *models.A
 		return fmt.Errorf("failed to remove user from group: %w", err)
 	}
 
+	// if the user is not in any group anymore, we can remove it from the account
+	canRemove, err := p.canMemberBeRemoved(ctx, username)
+	if err != nil {
+		return fmt.Errorf("failed to check if user can be removed from account: %w", err)
+	}
+	if canRemove {
+		if err := p.removeAccountMember(ctx, username); err != nil {
+			return fmt.Errorf("failed to remove user from account: %w", err)
+		}
+	}
+
 	// User removed successfully
 	request.SetProviderStatusRevoked(p.name, p.groupName, "")
 	log.Info().
