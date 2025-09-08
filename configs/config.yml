@@ -69,7 +69,7 @@ db:
   #   schema: public
   #   sslmode: disable
 
-# Credentials which can be refferenced inside the providers
+# Credentials which can be referenced inside the providers
 creds:
   gitlab:
     data:
@@ -81,6 +81,9 @@ creds:
     data:
       credentialsfile: creds/teleport-identity-file
       hostname: teleport.exampleorg.com
+  cloudflare:
+    data:
+      credentialsfile: creds/cloudflare-api-token
 
 approvalRules:
   - name: SRE approvers
@@ -91,7 +94,7 @@ approvalRules:
 
 roles:
   - name: SRE Tenant Dev
-    description: Privilleged access. Provides PU access to Dev Tenant
+    description: Privileged access. Provides PU access to Dev Tenant
     approvalRuleRef:
       name: SRE approvers
     tags:
@@ -158,7 +161,7 @@ roles:
           group: pu-role
 
   - name: SRE Read Only
-    description: Non privilleged access. Provides RO access to Gitlab, Teleport, Google and AWS
+    description: Non privileged access. Provides RO access to Gitlab, Teleport, Google and AWS
     approvalRuleRef:
       name: SRE approvers
     tags:
@@ -193,9 +196,16 @@ roles:
           name: teleport
         parameters:
           group: ro-role
+      
+      - name: CloudflareRo
+        provider: cloudflare
+        credentialRef:
+          name: cloudflare
+        parameters:
+          group: sre-read-only
 
   - name: SRE Read Only Mock
-    description: Non privilleged access. Provides RO access to Gitlab, Teleport, Google and AWS
+    description: Non privileged access. Provides RO access to Gitlab, Teleport, Google and AWS
     approvalRuleRef:
       name: SRE approvers
     tags:
