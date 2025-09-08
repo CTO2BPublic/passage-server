@@ -127,24 +127,34 @@ type SqliteConfig struct {
 var k = koanf.New(".")
 var configData Config
 
-func InitConfig() {
+func InitConfig() error {
 
 	// File config provider
-	k.Load(file.Provider("configs/config.yml"), yaml.Parser())
-	k.Load(file.Provider("configs/.secret.yml"), yaml.Parser())
+	if err := k.Load(file.Provider("configs/config.yml"), yaml.Parser()); err != nil {
+		return fmt.Errorf("error loading config file: %v", err)
+	}
+	if err := k.Load(file.Provider("configs/.secret.yml"), yaml.Parser()); err != nil {
+		return fmt.Errorf("error loading secret config file: %v", err)
+	}
 
 	// ENV provider
-	k.Load(env.Provider("PASSAGE_", ".", func(s string) string {
-		return strings.Replace(strings.ToLower(
-			strings.TrimPrefix(s, "PASSAGE_")), "_", ".", -1)
+	err := k.Load(env.Provider("PASSAGE_", ".", func(s string) string {
+		return strings.ReplaceAll(strings.ToLower(
+			strings.TrimPrefix(s, "PASSAGE_")), "_", ".")
 	}), nil)
+	if err != nil {
+		return fmt.Errorf("error loading config from ENV: %v", err)
+	}
 
-	k.Unmarshal("", &configData)
+	if err := k.Unmarshal("", &configData); err != nil {
+		return fmt.Errorf("error unmarshaling config: %v", err)
+	}
 
 	if configData.SharedSecret == "" {
 		configData.SharedSecret = generateRandomSecret()
 	}
 
+	return nil
 }
 
 func PrintConfig(configData *Config) {

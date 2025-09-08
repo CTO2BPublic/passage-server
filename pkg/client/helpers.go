@@ -29,14 +29,14 @@ func (a *ApiClient) doRequest(Req ClientRequest) (ResponseData []byte, StatusCod
 	}
 
 	req.Header.Set("Content-type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", strings.Replace(a.Token, "\n", "", -1)))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", strings.ReplaceAll(a.Token, "\n", "")))
 
 	response, err := client.Do(req)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 
 	responseData, _ := io.ReadAll(response.Body)
 

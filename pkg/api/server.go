@@ -34,8 +34,10 @@ func (s *Server) SetupEngineWithDefaults() *Server {
 	s.Engine = gin.New()
 
 	if Config.Tracing.Enabled {
-		tracing.NewTracer()
-		s.Engine.Use(tracing.NewTracingMidleware())
+		if _, err := tracing.NewTracer(); err != nil {
+			log.Fatal().Err(err).Msg("Failed to initialize tracer")
+		}
+		s.Engine.Use(tracing.NewTracingMiddleware())
 	}
 
 	// Logger middleware will write the logs to gin.DefaultWriter even if you set with GIN_MODE=release.

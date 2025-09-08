@@ -50,9 +50,12 @@ func processAccessRequests(apiClient *client.ApiClient, Requests []models.Access
 				Str("TTL", request.Details.TTL).
 				Msg("Revoking access request")
 
-			apiClient.ExpireAccessRequest(client.ExpireAccessRequestOpts{
+			_, _, err := apiClient.ExpireAccessRequest(client.ExpireAccessRequestOpts{
 				Id: request.Id,
 			})
+			if err != nil {
+				log.Err(err).Msgf("Failed to expire access request %s", request.Id)
+			}
 		}
 	}
 }

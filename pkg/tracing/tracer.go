@@ -51,9 +51,8 @@ func NewTracer() (*sdktrace.TracerProvider, error) {
 		}
 	case "grpc":
 		// Create a gRPC connection to the telemetry collector
-		conn, err := grpc.DialContext(ctx, Config.Tracing.URL,
+		conn, err := grpc.NewClient(Config.Tracing.URL,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
-			grpc.WithBlock(),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create gRPC connection to collector: %w", err)
@@ -94,7 +93,7 @@ func GetTracer() *sdktrace.TracerProvider {
 	return tracerProvider
 }
 
-func NewTracingMidleware() gin.HandlerFunc {
+func NewTracingMiddleware() gin.HandlerFunc {
 	return otelgin.Middleware(Config.Tracing.ServiceName)
 }
 

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"slices"
 
@@ -68,7 +69,11 @@ func (r *UserController) GetProfile(c *gin.Context) {
 
 	// If profile does not exist, create a new one
 	if !exists {
-		profile := r.newDefaultProfile(ctx, uid)
+		profile, err := r.newDefaultProfile(ctx, uid)
+		if err != nil {
+			c.AbortWithStatusJSON(errors.ErrorDatabaseInsert(err))
+			return
+		}
 		c.JSON(200, profile)
 		return
 	}
@@ -105,7 +110,12 @@ func (r *UserController) GetUsers(c *gin.Context) {
 	}
 
 	if len(profiles) == 0 {
-		profiles = append(profiles, r.newDefaultProfile(ctx, uid))
+		p, err := r.newDefaultProfile(ctx, uid)
+		if err != nil {
+			c.AbortWithStatusJSON(errors.ErrorDatabaseInsert(err))
+			return
+		}
+		profiles = append(profiles, p)
 	}
 
 	users := []models.User{}
@@ -167,7 +177,7 @@ func (r *UserController) GetRoleMappings(c *gin.Context) {
 	c.JSON(200, result)
 }
 
-func (r *UserController) newDefaultProfile(ctx context.Context, uid string) models.UserProfile {
+func (r *UserController) newDefaultProfile(ctx context.Context, uid string) (models.UserProfile, error) {
 	profile := models.UserProfile{
 		Id:       uid,
 		Username: uid,
@@ -175,9 +185,11 @@ func (r *UserController) newDefaultProfile(ctx context.Context, uid string) mode
 			ProviderUsernames: providers.NewProviderUsernames(),
 		},
 	}
-	Db.InsertUserProfile(ctx, profile)
+	if err := Db.InsertUserProfile(ctx, profile); err != nil {
+		return models.UserProfile{}, fmt.Errorf("error creating default profile: %v", err)
+	}
 
-	return profile
+	return profile, nil
 }
 
 // @Security JWT
@@ -210,7 +222,7 @@ func (r *UserController) UpdateProfileSettings(c *gin.Context) {
 		Settings: data,
 	})
 	if err != nil {
-		c.AbortWithStatusJSON(errors.ErrorDatabaseInsert(err))
+		c.AbortWithStatusJSON(errors.ErrorDatabaseUpdate(err))
 		return
 	}
 

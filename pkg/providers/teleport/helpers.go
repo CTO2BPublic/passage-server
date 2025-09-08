@@ -47,7 +47,9 @@ func (a *TeleportProvider) upsertRole(RoleName string, roleDefinition string) er
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 	var holder map[interface{}]interface{}
-	yaml.Unmarshal([]byte(roleDefinition), &holder)
+	if err := yaml.Unmarshal([]byte(roleDefinition), &holder); err != nil {
+		return err
+	}
 	bytes, err := json.Marshal(holder)
 	if err != nil {
 		return err

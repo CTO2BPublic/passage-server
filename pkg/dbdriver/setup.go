@@ -38,7 +38,7 @@ func (d *Database) Connect() {
 			DisableForeignKeyConstraintWhenMigrating: true,
 		})
 		if err != nil {
-			log.Fatal().Msg(err.Error())
+			log.Fatal().Err(err).Msg("Failed to connect to database")
 		}
 	}
 
@@ -49,7 +49,7 @@ func (d *Database) Connect() {
 
 		d.Engine, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 		if err != nil {
-			log.Fatal().Msg(err.Error())
+			log.Fatal().Err(err).Msg("Failed to connect to database")
 		}
 	}
 
@@ -58,11 +58,13 @@ func (d *Database) Connect() {
 
 		d.Engine, err = gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
 		if err != nil {
-			log.Fatal().Msg(err.Error())
+			log.Fatal().Err(err).Msg("Failed to connect to database")
 		}
 	}
 
-	d.Engine.Use(tracing.NewPlugin())
+	if err := d.Engine.Use(tracing.NewPlugin()); err != nil {
+		log.Fatal().Err(err).Msg("Failed to enable tracing plugin")
+	}
 
 	Driver = d
 }

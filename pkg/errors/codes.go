@@ -50,8 +50,8 @@ func ErrorJsonUnmarshal(err error) (code int, body gin.H) {
 //	}
 func ErrorYamlUnmarshal(err error) (code int, body gin.H) {
 	body = gin.H{
-		"type":   "/errors/json-decode",
-		"title":  "Failed to decode JSON",
+		"type":   "/errors/yaml-decode",
+		"title":  "Failed to decode YAML",
 		"status": http.StatusBadRequest,
 		"error":  err.Error(),
 	}
@@ -62,13 +62,30 @@ func ErrorYamlUnmarshal(err error) (code int, body gin.H) {
 //	{
 //		"type":   "/errors/base64",
 //		"title":  "Failed to decode/encode base64",
-//		"status": http.StatusInternalServerError,
+//		"status": http.StatusBadRequest,
 //		"error":  err.Error(),
 //	}
 func ErrorBase64(err error) (code int, body gin.H) {
 	body = gin.H{
 		"type":   "/errors/base64",
 		"title":  "Failed to decode/encode base64",
+		"status": http.StatusBadRequest,
+		"error":  err.Error(),
+	}
+	log.Error().Msg(fmt.Sprintf("%+v", body))
+	return http.StatusBadRequest, body
+}
+
+//	{
+//		"type":   "/errors/database",
+//		"title":  "Failed to insert into database",
+//		"status": http.StatusInternalServerError,
+//		"error":  err.Error(),
+//	}
+func ErrorDatabaseInsert(err error) (code int, body gin.H) {
+	body = gin.H{
+		"type":   "/errors/database",
+		"title":  "Failed to insert into database",
 		"status": http.StatusInternalServerError,
 		"error":  err.Error(),
 	}
@@ -78,50 +95,50 @@ func ErrorBase64(err error) (code int, body gin.H) {
 
 //	{
 //		"type":   "/errors/database",
-//		"title":  "Failed to insert into database",
-//		"status": http.StatusBadRequest,
+//		"title":  "Failed to update into database",
+//		"status": http.StatusInternalServerError,
 //		"error":  err.Error(),
 //	}
-func ErrorDatabaseInsert(err error) (code int, body gin.H) {
+func ErrorDatabaseUpdate(err error) (code int, body gin.H) {
 	body = gin.H{
 		"type":   "/errors/database",
-		"title":  "Failed to insert into database",
-		"status": http.StatusBadRequest,
+		"title":  "Failed to update database",
+		"status": http.StatusInternalServerError,
 		"error":  err.Error(),
 	}
 	log.Error().Msg(fmt.Sprintf("%+v", body))
-	return http.StatusBadRequest, body
+	return http.StatusInternalServerError, body
 }
 
 //	{
 //		"type":   "/errors/database",
 //		"title":  "Failed to query the database",
-//		"status": http.StatusBadRequest,
+//		"status": http.StatusInternalServerError,
 //		"error":  err.Error(),
 //	}
 func ErrorDatabaseSelect(err error) (code int, body gin.H) {
 	body = gin.H{
 		"type":   "/errors/database",
 		"title":  "Failed to query the database",
-		"status": http.StatusBadRequest,
+		"status": http.StatusInternalServerError,
 		"error":  err.Error(),
 	}
 	log.Error().Msg(fmt.Sprintf("%+v", body))
-	return http.StatusBadRequest, body
+	return http.StatusInternalServerError, body
 }
 
 //	{
 //		"type":   "/errors/database",
 //		"title":  "Record not found",
-//		"status": http.StatusBadRequest,
+//		"status": http.StatusNotFound,
 //	}
 func ErrorDatabaseRecordNotFound() (code int, body gin.H) {
 	body = gin.H{
 		"type":   "/errors/database",
 		"title":  "Record not found",
-		"status": http.StatusBadRequest,
+		"status": http.StatusNotFound,
 	}
-	return http.StatusBadRequest, body
+	return http.StatusNotFound, body
 }
 
 //	{
@@ -144,18 +161,18 @@ func ErrorTracing(err error) (code int, body gin.H) {
 //	{
 //		"type":   "/errors/teleport-api",
 //		"title":  "Failure Teleport API",
-//		"status": http.StatusBadRequest,
+//		"status": http.StatusInternalServerError,
 //		"error":  err.Error(),
 //	}
 func ErrorTeleportApi(err error) (code int, body gin.H) {
 	body = gin.H{
 		"type":   "/errors/teleport-api",
 		"title":  "Failure Teleport API",
-		"status": http.StatusBadRequest,
+		"status": http.StatusInternalServerError,
 		"error":  err.Error(),
 	}
 	log.Error().Msg(fmt.Sprintf("%+v", body))
-	return http.StatusBadRequest, body
+	return http.StatusInternalServerError, body
 }
 
 //	{
@@ -283,16 +300,16 @@ func AccessProviderCallPartiallyFailed(err error) (code int, body gin.H) {
 
 //	{
 //		"type":   "/status/denied",
-//		"title":  "You are not authorised to perform this action",
+//		"title":  "You are not authorized to perform this action",
 //		"status": http.StatusForbidden,
 //	}
 func StatusDenied() (code int, body gin.H) {
 	body = gin.H{
 		"type":   "/status/denied",
-		"title":  "You are not authorised to perform this action",
+		"title":  "You are not authorized to perform this action",
 		"status": http.StatusForbidden,
 	}
-	return http.StatusCreated, body
+	return http.StatusForbidden, body
 }
 
 //	{
@@ -334,7 +351,7 @@ func StatusDeleted() (code int, body gin.H) {
 		"title":  "Record successfully deleted",
 		"status": http.StatusOK,
 	}
-	return http.StatusCreated, body
+	return http.StatusOK, body
 }
 
 //	{

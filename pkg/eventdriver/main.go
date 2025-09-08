@@ -2,6 +2,7 @@ package eventdriver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/CTO2BPublic/passage-server/pkg/dbdriver"
 	"github.com/CTO2BPublic/passage-server/pkg/kafkadriver"
@@ -26,7 +27,10 @@ var Db = dbdriver.GetDriver()
 func (e *Events) NewDriver() *Events {
 
 	if Config.Events.Kafka.Enabled {
-		Kafka.NewClient()
+		_, err := Kafka.NewClient()
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to create Kafka client")
+		}
 	}
 
 	return e
@@ -46,15 +50,23 @@ func (e *Events) handleEvent(ctx context.Context, data interface{}) error {
 	}
 
 	if Config.Events.Kafka.Enabled {
-		go Kafka.WriteMessage(data, txid)
+		go func() {
+			if err := Kafka.WriteMessage(data, txid); err != nil {
+				log.Error().Err(err).Msg("Failed to write event to Kafka")
+			}
+		}()
 	}
 
 	if Config.Events.Database.Enabled {
-		Db.InsertEvent(ctx, event)
+		if err := Db.InsertEvent(ctx, event); err != nil {
+			return fmt.Errorf("failed to insert event in database: %w", err)
+		}
 
 		activityLog, err := models.NewActivityLogFromEvent(event)
 		if err == nil {
-			Db.InsertActivityLog(ctx, *activityLog)
+			if err := Db.InsertActivityLog(ctx, *activityLog); err != nil {
+				return fmt.Errorf("failed to insert activity log in database: %w", err)
+			}
 		}
 	}
 

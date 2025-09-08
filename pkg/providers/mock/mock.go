@@ -37,7 +37,7 @@ func NewMockProvider(ctx context.Context, config models.ProviderConfig) (*MockPr
 }
 
 func (a *MockProvider) GrantAccess(ctx context.Context, request *models.AccessRequest) error {
-	ctx, span := tracing.NewSpanWrapper(ctx, "providers.mock.GrantAccess")
+	_, span := tracing.NewSpanWrapper(ctx, "providers.mock.GrantAccess")
 	span.SetAttributes(
 		attribute.String("peer.service", "mock"),
 		attribute.String("span.kind", "client"),
@@ -59,7 +59,7 @@ func (a *MockProvider) GrantAccess(ctx context.Context, request *models.AccessRe
 }
 
 func (a *MockProvider) RevokeAccess(ctx context.Context, request *models.AccessRequest) error {
-	ctx, span := tracing.NewSpanWrapper(ctx, "providers.mock.RevokeAccess")
+	_, span := tracing.NewSpanWrapper(ctx, "providers.mock.RevokeAccess")
 	span.SetAttributes(
 		attribute.String("peer.service", "mock"),
 		attribute.String("span.kind", "client"),
