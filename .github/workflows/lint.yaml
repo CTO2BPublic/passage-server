@@ -1,4 +1,4 @@
-name: Lint
+name: Lint & Test
 
 on:
   push:
@@ -28,3 +28,20 @@ jobs:
         uses: golangci/golangci-lint-action@v8
         with:
           version: v2.4
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+
+      - name: Run tests
+        run: go test -v ./...
