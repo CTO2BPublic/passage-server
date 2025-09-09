@@ -1,8 +1,44 @@
-.DS_Store
-gorm.db
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+passage-server
+
+# Test binary, built with `go test -c`
+*.test
+
+# Code coverage profiles and other test artifacts
+*.out
+coverage.*
+*.coverprofile
+profile.cov
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# env file
+.env
 .secret.yml
 dev-config.yml
+creds/
+
+# Editor/IDE
+.vscode/
+.thunder/
+
+# OS
+.DS_Store
+
+# database
+*.db
+
+# misc
 misc
 jaeger
 TODO.md
-creds
