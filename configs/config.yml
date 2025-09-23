@@ -84,6 +84,11 @@ creds:
   cloudflare:
     data:
       credentialsfile: creds/cloudflare-api-token
+  atlassian:
+    data:
+      token: "****" # PASSAGE_CREDS_ATLASSIAN_DATA_TOKEN
+      email: "admin@email.com" # email of the admin that generated the API token present in the credential file
+      siteurl: "https://company.atlassian.net" # URL of the jira instance
 
 approvalRules:
   - name: SRE approvers
