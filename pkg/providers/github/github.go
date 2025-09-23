@@ -73,7 +73,7 @@ func NewGithubProvider(ctx context.Context, config models.ProviderConfig) (*Gith
 		if inst.GetAccount().GetLogin() == parameters.Org {
 			installationID = inst.GetID()
 			log.Debug().Msgf("InstallationID: %d Account: %s", inst.GetID(), inst.GetAccount().GetLogin())
-			continue
+			break
 		}
 	}
 
