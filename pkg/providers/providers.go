@@ -7,6 +7,7 @@ import (
 	"github.com/CTO2BPublic/passage-server/pkg/models"
 	"github.com/CTO2BPublic/passage-server/pkg/providers/aws"
 	"github.com/CTO2BPublic/passage-server/pkg/providers/cloudflare"
+	"github.com/CTO2BPublic/passage-server/pkg/providers/github"
 	"github.com/CTO2BPublic/passage-server/pkg/providers/gitlab"
 	"github.com/CTO2BPublic/passage-server/pkg/providers/google"
 	mockp "github.com/CTO2BPublic/passage-server/pkg/providers/mock"
@@ -25,6 +26,7 @@ type ProviderKind string
 const (
 	ProviderKindMock       ProviderKind = "mock"
 	ProviderKindGitlab     ProviderKind = "gitlab"
+	ProviderKindGithub     ProviderKind = "github"
 	ProviderKindGoogle     ProviderKind = "google"
 	ProviderKindTeleport   ProviderKind = "teleport"
 	ProviderKindAWS        ProviderKind = "aws"
@@ -55,6 +57,8 @@ func NewProvider(ctx context.Context, providerConfig models.ProviderConfig) (Pro
 		return teleport.NewTeleportProvider(ctx, providerConfig)
 	case string(ProviderKindCloudflare):
 		return cloudflare.NewCloudflareProvider(ctx, providerConfig)
+	case string(ProviderKindGithub):
+		return github.NewGithubProvider(ctx, providerConfig)
 	default:
 		return nil, fmt.Errorf("unsupported provider type: %s", providerConfig.Provider)
 	}

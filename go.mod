@@ -9,11 +9,13 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.55
 	github.com/aws/aws-sdk-go-v2/service/identitystore v1.27.13
 	github.com/aws/aws-sdk-go-v2/service/ssoadmin v1.29.12
+	github.com/bradleyfalzon/ghinstallation/v2 v2.16.0
 	github.com/coreos/go-oidc v2.3.0+incompatible
 	github.com/gin-contrib/cors v1.7.3
 	github.com/gin-gonic/gin v1.10.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/golang-jwt/jwt/v4 v4.5.2
+	github.com/google/go-github/v74 v74.0.0
 	github.com/google/uuid v1.6.0
 	github.com/gravitational/teleport/api v0.0.0-20250128104452-ecabf6b767ac
 	github.com/json-iterator/go v1.1.12
@@ -109,6 +111,7 @@ require (
 	github.com/goccy/go-json v0.10.4 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/google/go-github/v72 v72.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect
