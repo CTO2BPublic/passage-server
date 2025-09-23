@@ -9,7 +9,9 @@ import (
 
 	"github.com/CTO2BPublic/passage-server/pkg/config"
 	"github.com/CTO2BPublic/passage-server/pkg/models"
+	"github.com/CTO2BPublic/passage-server/pkg/providers/kinds"
 	"github.com/CTO2BPublic/passage-server/pkg/tracing"
+	"golang.org/x/oauth2"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v74/github"
@@ -21,15 +23,16 @@ var Config = config.GetConfig()
 var Tracer = otel.Tracer("pkg/providers/github")
 
 type GithubProvider struct {
-	Client     *github.Client
-	Parameters GithubProviderParameters
-	Name       string `json:"name"`
+	AppClient          *github.Client
+	InstallationClient *github.Client
+	PatClient          *github.Client
+	Parameters         GithubProviderParameters
+	Name               string `json:"name"`
 }
 
 type GithubProviderParameters struct {
-	Org      string `json:"org"`
-	Username string `json:"username"`
-	Group    string `json:"group"` // admin, member
+	Org   string `json:"org"`
+	Group string `json:"group"` // admin, member
 }
 
 func NewGithubProvider(ctx context.Context, config models.ProviderConfig) (*GithubProvider, error) {
@@ -50,19 +53,23 @@ func NewGithubProvider(ctx context.Context, config models.ProviderConfig) (*Gith
 	var installationID int64
 
 	// App client
-	tr, _ := ghinstallation.NewAppsTransportKeyFromFile(
+	appTr, err := ghinstallation.NewAppsTransportKeyFromFile(
 		http.DefaultTransport,
 		appID,
 		keyPath,
 	)
 
-	appClient := github.NewClient(&http.Client{Transport: tr})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create apps transport: %w", err)
+	}
+
+	appClient := github.NewClient(&http.Client{Transport: appTr})
 
 	installations, _, _ := appClient.Apps.ListInstallations(ctx, nil)
 	for _, inst := range installations {
 		if inst.GetAccount().GetLogin() == parameters.Org {
 			installationID = inst.GetID()
-			log.Debug().Msgf("ID: %d Account: %s", inst.GetID(), inst.GetAccount().GetLogin())
+			log.Debug().Msgf("InstallationID: %d Account: %s", inst.GetID(), inst.GetAccount().GetLogin())
 			continue
 		}
 	}
@@ -72,18 +79,28 @@ func NewGithubProvider(ctx context.Context, config models.ProviderConfig) (*Gith
 	}
 
 	// Installation client
-	itr := http.DefaultTransport
-	itr, err = ghinstallation.NewKeyFromFile(itr, appID, installationID, keyPath)
+	insTr := http.DefaultTransport
+	insTr, err = ghinstallation.NewKeyFromFile(insTr, appID, installationID, keyPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create GitHub App transport: %w", err)
 	}
 
-	client := github.NewClient(&http.Client{Transport: itr})
+	installationClient := github.NewClient(&http.Client{Transport: insTr})
+
+	// PAT Client
+	pat := creds.GetString("pat")
+	patTr := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: pat},
+	)
+	tc := oauth2.NewClient(ctx, patTr)
+	patClient := github.NewClient(tc)
 
 	return &GithubProvider{
-		Client:     client,
-		Parameters: parameters,
-		Name:       config.Name,
+		AppClient:          appClient,
+		InstallationClient: installationClient,
+		PatClient:          patClient,
+		Parameters:         parameters,
+		Name:               config.Name,
 	}, nil
 }
 
@@ -92,8 +109,17 @@ func (p *GithubProvider) GrantAccess(ctx context.Context, request *models.Access
 	defer span.End()
 
 	params := p.Parameters
+	username := request.GetProviderUsername(string(kinds.ProviderKindGithub))
 
-	_, _, err := p.Client.Organizations.EditOrgMembership(ctx, params.Username, params.Org, &github.Membership{Role: github.Ptr(params.Group)})
+	log.Info().
+		Str("Provider", p.Name).
+		Str("AccessRequest", request.Id).
+		Str("Username", username).
+		Str("Group", params.Group).
+		Str("Org", params.Org).
+		Msg("Processing")
+
+	_, _, err := p.PatClient.Organizations.EditOrgMembership(ctx, username, params.Org, &github.Membership{Role: github.Ptr(params.Group)})
 	if err != nil {
 		request.SetProviderStatusError(p.Name, params.Org, err.Error())
 		return fmt.Errorf("failed to add user to org: %w", err)
@@ -103,7 +129,7 @@ func (p *GithubProvider) GrantAccess(ctx context.Context, request *models.Access
 	log.Info().
 		Str("Provider", p.Name).
 		Str("AccessRequest", request.Id).
-		Str("Username", params.Username).
+		Str("Username", username).
 		Str("Org", params.Org).
 		Msg("User added to organization")
 	return nil
@@ -114,8 +140,9 @@ func (p *GithubProvider) RevokeAccess(ctx context.Context, request *models.Acces
 	defer span.End()
 
 	params := p.Parameters
+	username := request.GetProviderUsername(string(kinds.ProviderKindGithub))
 
-	isMember, err := p.isOrgMember(ctx, params.Org, params.Username)
+	isMember, err := p.isOrgMember(ctx, params.Org, username)
 	if err != nil {
 		request.SetProviderStatusError(p.Name, params.Org, err.Error())
 		return fmt.Errorf("failed to check org membership: %w", err)
@@ -126,13 +153,13 @@ func (p *GithubProvider) RevokeAccess(ctx context.Context, request *models.Acces
 		log.Info().
 			Str("Provider", p.Name).
 			Str("AccessRequest", request.Id).
-			Str("Username", params.Username).
+			Str("Username", username).
 			Str("Org", params.Org).
 			Msg("User already not in organization")
 		return nil
 	}
 
-	_, err = p.Client.Organizations.RemoveOrgMembership(ctx, params.Username, params.Org)
+	_, err = p.PatClient.Organizations.RemoveOrgMembership(ctx, username, params.Org)
 	if err != nil {
 		request.SetProviderStatusError(p.Name, params.Org, err.Error())
 		return fmt.Errorf("failed to remove user from org: %w", err)
@@ -142,7 +169,7 @@ func (p *GithubProvider) RevokeAccess(ctx context.Context, request *models.Acces
 	log.Info().
 		Str("Provider", p.Name).
 		Str("AccessRequest", request.Id).
-		Str("Username", params.Username).
+		Str("Username", username).
 		Str("Org", params.Org).
 		Msg("User removed from organization")
 	return nil
@@ -153,7 +180,7 @@ func (p *GithubProvider) ListUsersWithAccess(ctx context.Context, roleRef models
 	defer span.End()
 
 	params := p.Parameters
-	members, _, err := p.Client.Organizations.ListMembers(ctx, params.Org, nil)
+	members, _, err := p.InstallationClient.Organizations.ListMembers(ctx, params.Org, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list org members: %w", err)
 	}

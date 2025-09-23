@@ -9,7 +9,7 @@ import (
 )
 
 func (p *GithubProvider) isOrgMember(ctx context.Context, org, user string) (bool, error) {
-	membership, resp, err := p.Client.Organizations.GetOrgMembership(ctx, user, org)
+	membership, resp, err := p.InstallationClient.Organizations.GetOrgMembership(ctx, user, org)
 	if resp != nil && resp.StatusCode == 404 {
 		return false, nil
 	}
@@ -26,19 +26,14 @@ func extractParameters(cfg models.ProviderConfig) (GithubProviderParameters, err
 	if !ok {
 		return GithubProviderParameters{}, errors.New("org not found in provider config")
 	}
-	user, ok := data["username"]
-	if !ok {
-		return GithubProviderParameters{}, errors.New("username not found in provider config")
-	}
 	group, ok := data["group"]
 	if !ok {
 		return GithubProviderParameters{}, errors.New("group not found in provider config")
 	}
 
 	return GithubProviderParameters{
-		Org:      org,
-		Username: user,
-		Group:    group,
+		Org:   org,
+		Group: group,
 	}, nil
 }
 
