@@ -58,14 +58,17 @@ func NewGithubProvider(ctx context.Context, config models.ProviderConfig) (*Gith
 		appID,
 		keyPath,
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to create apps transport: %w", err)
 	}
 
 	appClient := github.NewClient(&http.Client{Transport: appTr})
 
-	installations, _, _ := appClient.Apps.ListInstallations(ctx, nil)
+	installations, _, err := appClient.Apps.ListInstallations(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not list app installations for Github org: %s", parameters.Org)
+	}
+
 	for _, inst := range installations {
 		if inst.GetAccount().GetLogin() == parameters.Org {
 			installationID = inst.GetID()
