@@ -18,7 +18,7 @@ func testProvider(t *testing.T, params map[string]string) (*GithubProvider, erro
 
 	err := config.InitConfig("../../../configs")
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to initialize config")
+		log.Error().Err(err).Msg("Failed to initialize config")
 	}
 
 	Config := config.GetConfig()
