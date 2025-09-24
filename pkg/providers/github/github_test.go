@@ -17,8 +17,8 @@ import (
 func testProvider(t *testing.T, params map[string]string) (*GithubProvider, error) {
 
 	err := config.InitConfig("../../../configs")
-	if _, err := tracing.NewTracer(); err != nil {
-		log.Fatal().Err(err).Msg("Failed to read config")
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to initialize config")
 	}
 
 	Config := config.GetConfig()
