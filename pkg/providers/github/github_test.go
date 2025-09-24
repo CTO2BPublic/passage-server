@@ -52,6 +52,7 @@ func mustProvider(t *testing.T, params map[string]string) *GithubProvider {
 type grantAccessTestCase struct {
 	name        string
 	params      map[string]string
+	username    string
 	wantError   bool
 	errContain  string
 	checkRevoke bool // whether to call RevokeAccess after Grant
@@ -59,25 +60,38 @@ type grantAccessTestCase struct {
 
 func TestGrantAccessVariousConfigs(t *testing.T) {
 	ctx := context.Background()
-	username := "cto2bserviceaccount"
 	providerType := string(kinds.ProviderKindGithub)
+
+	username := "cto2bserviceaccount"
 
 	cases := []grantAccessTestCase{
 		{
-			name: "valid config",
+			name:     "add user to org",
+			username: username,
 			params: map[string]string{
-				"org":          "CTO2BPublic",
-				"role":         "admin",
-				"orgRoles":     `["all_repo_read"]`,
-				"teams":        `{"cto2bprimary":"member"}`,
-				"repositories": `{"office-supplies-tracker":"admin"}`,
-				"removeUser":   "true",
+				"org":        "CTO2BPublic",
+				"role":       "admin",
+				"removeUser": "true",
 			},
 			wantError:   false,
 			checkRevoke: true,
 		},
 		{
-			name: "external collaborator",
+			name:     "modify existing user",
+			username: "cto2b",
+			params: map[string]string{
+				"org":          "CTO2BPublic",
+				"orgRoles":     `["all_repo_read"]`,
+				"teams":        `{"cto2bprimary":"member"}`,
+				"repositories": `{"office-supplies-tracker":"admin"}`,
+				"removeUser":   "false",
+			},
+			wantError:   false,
+			checkRevoke: true,
+		},
+		{
+			name:     "external collaborator",
+			username: username,
 			params: map[string]string{
 				"org":          "CTO2BPublic",
 				"repositories": `{"office-supplies-tracker":"push"}`,
@@ -87,24 +101,28 @@ func TestGrantAccessVariousConfigs(t *testing.T) {
 		},
 		{
 			name:       "invalid org role",
+			username:   username,
 			params:     map[string]string{"org": "CTO2BPublic", "orgRoles": `["Non existant org role"]`},
 			wantError:  true,
 			errContain: "not found",
 		},
 		{
 			name:       "invalid org membership",
+			username:   username,
 			params:     map[string]string{"org": "CTO2BPublic", "role": "NonExistantTestRole"},
 			wantError:  true,
 			errContain: "unsupported",
 		},
 		{
 			name:       "invalid org",
+			username:   username,
 			params:     map[string]string{"org": "ctobpublicnonexistant"},
 			wantError:  true,
 			errContain: "could not find installation id",
 		},
 		{
-			name: "invalid team permissions",
+			name:     "invalid team permissions",
+			username: username,
 			params: map[string]string{
 				"org":   "CTO2BPublic",
 				"teams": `{"cto2bprimary":"membertest"}`,
@@ -114,7 +132,8 @@ func TestGrantAccessVariousConfigs(t *testing.T) {
 			checkRevoke: true,
 		},
 		{
-			name: "invalid repository permissions",
+			name:     "invalid repository permissions",
+			username: username,
 			params: map[string]string{
 				"org":          "CTO2BPublic",
 				"repositories": `{"office-supplies-tracker":"pushtest"}`,
@@ -123,7 +142,8 @@ func TestGrantAccessVariousConfigs(t *testing.T) {
 			errContain: "is not a valid permission",
 		},
 		{
-			name: "invalid team",
+			name:     "invalid team",
+			username: username,
 			params: map[string]string{
 				"org":   "CTO2BPublic",
 				"teams": `{"cto2bprimarytest":"member"}`,
@@ -132,7 +152,8 @@ func TestGrantAccessVariousConfigs(t *testing.T) {
 			errContain: "404 Not Found",
 		},
 		{
-			name: "invalid repository",
+			name:     "invalid repository",
+			username: username,
 			params: map[string]string{
 				"org":          "CTO2BPublic",
 				"repositories": `{"office-supplies-tracker-test":"pushtest"}`,
@@ -157,7 +178,7 @@ func TestGrantAccessVariousConfigs(t *testing.T) {
 
 			req := &models.AccessRequest{
 				Status: models.AccessRequestStatus{
-					ProviderUsernames: map[string]string{providerType: username},
+					ProviderUsernames: map[string]string{providerType: tt.username},
 				},
 			}
 
