@@ -26,7 +26,6 @@ func testProvider(t *testing.T, params map[string]string) (*GithubProvider, erro
 		}
 	}
 
-
 	ctx := context.Background()
 	c, err := NewGithubProvider(ctx, models.ProviderConfig{
 		Name:     "Test",
@@ -70,7 +69,7 @@ func TestGrantAccessVariousConfigs(t *testing.T) {
 				"orgRoles":     `["all_repo_read"]`,
 				"teams":        `{"cto2bprimary":"member"}`,
 				"repositories": `{"office-supplies-tracker":"admin"}`,
-				"removeUser":   "false",
+				"removeUser":   "true",
 			},
 			wantError:   false,
 			checkRevoke: true,
