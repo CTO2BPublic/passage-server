@@ -297,6 +297,7 @@ func (p *GithubProvider) removeUserFromRepos(ctx context.Context, org string, re
 	return nil
 }
 
+
 func extractParameters(cfg models.ProviderConfig) (GithubProviderParameters, error) {
 	data := cfg.Parameters
 
@@ -304,6 +305,7 @@ func extractParameters(cfg models.ProviderConfig) (GithubProviderParameters, err
 	if !ok {
 		return GithubProviderParameters{}, errors.New("org not found in provider config")
 	}
+
 
 	role, ok := data["role"]
 	if !ok {
@@ -349,6 +351,15 @@ func extractParameters(cfg models.ProviderConfig) (GithubProviderParameters, err
 		Teams:        teamsMap,
 		Repositories: repoMap,
 		RemoveUser:   removeUser,
+
+	group, ok := data["group"]
+	if !ok {
+		return GithubProviderParameters{}, errors.New("group not found in provider config")
+	}
+
+	return GithubProviderParameters{
+		Org:   org,
+
 	}, nil
 }
 

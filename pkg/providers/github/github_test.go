@@ -26,12 +26,14 @@ func testProvider(t *testing.T, params map[string]string) (*GithubProvider, erro
 		}
 	}
 
+
 	ctx := context.Background()
 	c, err := NewGithubProvider(ctx, models.ProviderConfig{
 		Name:     "Test",
 		RunAsync: false,
 		Provider: "github",
 		CredentialRef: models.CredentialRef{
+
 			Name: "test-github",
 		},
 		Parameters: params,

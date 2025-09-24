@@ -96,6 +96,7 @@ func NewGithubProvider(ctx context.Context, config models.ProviderConfig) (*Gith
 	tracedInsTr := otelhttp.NewTransport(insTr)
 	installationClient := github.NewClient(&http.Client{Transport: tracedInsTr})
 
+
 	// PAT Client
 	pat := creds.GetString("pat")
 	patTr := oauth2.StaticTokenSource(
@@ -153,6 +154,7 @@ func (p *GithubProvider) GrantAccess(ctx context.Context, request *models.Access
 			request.SetProviderStatusError(p.Name, params.Role, err.Error())
 			return fmt.Errorf("failed setting Direct Github Repository permissions %+v: %w", params.Teams, err)
 		}
+
 	}
 
 	request.SetProviderStatusGranted(p.Name, params.Org, "")
@@ -205,6 +207,7 @@ func (p *GithubProvider) RevokeAccess(ctx context.Context, request *models.Acces
 			request.SetProviderStatusError(p.Name, params.Role, err.Error())
 			return fmt.Errorf("failed setting Direct Github Repository permissions %+v: %w", params.Teams, err)
 		}
+
 	}
 
 	request.SetProviderStatusRevoked(p.Name, params.Org, "")
@@ -214,6 +217,7 @@ func (p *GithubProvider) RevokeAccess(ctx context.Context, request *models.Acces
 		Str("Username", username).
 		Str("Org", params.Org).
 		Msg("User access revoked")
+
 	return nil
 }
 
