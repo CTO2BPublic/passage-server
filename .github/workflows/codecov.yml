@@ -14,6 +14,11 @@ jobs:
   test-github:
     name: Test GitHub Provider
     runs-on: ubuntu-latest
+    env:
+      PASSAGE_CREDS_TEST-GITHUB_DATA_APPID: ${{ secrets.TEST_GITHUB_APP_ID }}
+      PASSAGE_CREDS_TEST-GITHUB_DATA_PRIVATEKEYPATH: ../../../creds/github-app.pem
+      PRIVATE_KEY_PATH: ${{ github.workspace }}/creds/github-app.pem
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -22,6 +27,12 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.23.x"
+
+      - name: Create creds directory
+        run: mkdir -p creds
+
+      - name: Write GitHub private key
+        run: echo "${{ secrets.PASSAGE_CREDS_TEST-GITHUB_DATA_PRIVATEKEY }}" > $PRIVATE_KEY_PATH
 
       - name: Test GitHub provider
         run: |
