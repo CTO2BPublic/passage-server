@@ -29,7 +29,10 @@ jobs:
           go-version: "1.23.x"
 
       - name: Create creds directory
-        run: mkdir -p creds
+        run: |
+          mkdir -p creds
+          mkdir -p configs
+          touch configs/.secret.yml
 
       - name: Write GitHub private key
         run: echo "${{ secrets.TEST_GITHUB_APP_PRIVATE_KEY }}" > $PRIVATE_KEY_PATH
