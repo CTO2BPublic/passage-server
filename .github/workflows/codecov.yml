@@ -15,8 +15,8 @@ jobs:
     name: Test GitHub Provider
     runs-on: ubuntu-latest
     env:
-      PASSAGE_CREDS_TEST-GITHUB_DATA_APPID: ${{ secrets.TEST_GITHUB_APP_ID }}
-      PASSAGE_CREDS_TEST-GITHUB_DATA_PRIVATEKEYPATH: ../../../creds/github-app.pem
+      PASSAGE_CREDS_TESTGITHUB_DATA_APPID: ${{ secrets.TEST_GITHUB_APP_ID }}
+      PASSAGE_CREDS_TESTGITHUB_DATA_PRIVATEKEYPATH: ../../../creds/github-app.pem
       PRIVATE_KEY_PATH: ${{ github.workspace }}/creds/github-app.pem
 
     steps:

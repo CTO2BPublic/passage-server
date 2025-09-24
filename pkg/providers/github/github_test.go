@@ -18,7 +18,7 @@ func testProvider(t *testing.T, params map[string]string) (*GithubProvider, erro
 
 	err := config.InitConfig("../../../configs")
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to initialize config")
+		log.Info().Err(err).Msg("Failed to fully load config")
 	}
 
 	Config := config.GetConfig()
@@ -35,8 +35,7 @@ func testProvider(t *testing.T, params map[string]string) (*GithubProvider, erro
 		RunAsync: false,
 		Provider: "github",
 		CredentialRef: models.CredentialRef{
-
-			Name: "test-github",
+			Name: "testgithub",
 		},
 		Parameters: params,
 	})
