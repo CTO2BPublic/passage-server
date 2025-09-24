@@ -23,7 +23,7 @@ type Config struct {
 	Events        EventsConfig
 	Log           LogConfig
 	Db            DbConfig
-	Creds         map[string]models.Credential
+	Creds         map[string]models.Credential `json:"-"`
 	Roles         []models.AccessRole
 	ApprovalRules []models.ApprovalRule
 	SharedSecret  string `json:"-"`
