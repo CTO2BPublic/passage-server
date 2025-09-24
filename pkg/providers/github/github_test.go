@@ -16,7 +16,10 @@ import (
 
 func testProvider(t *testing.T, params map[string]string) (*GithubProvider, error) {
 
-	config.InitConfig("../../../configs")
+	err := config.InitConfig("../../../configs")
+	if _, err := tracing.NewTracer(); err != nil {
+		log.Fatal().Err(err).Msg("Failed to read config")
+	}
 
 	Config := config.GetConfig()
 
