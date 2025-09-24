@@ -29,7 +29,7 @@ import (
 
 func main() {
 
-	if err := config.InitConfig(); err != nil {
+	if err := config.InitConfig(""); err != nil {
 		log.Fatal().Msg(err.Error())
 	}
 	Config := config.GetConfig()
