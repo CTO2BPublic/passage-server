@@ -41,7 +41,7 @@ events:
     enabled: true
 
 log:
-  level: debug
+  level: info
   pretty: true
   caller: true
 
@@ -89,6 +89,13 @@ creds:
       token: "****" # PASSAGE_CREDS_ATLASSIAN_DATA_TOKEN
       email: "admin@email.com" # email of the admin that generated the API token present in the credential file
       siteurl: "https://company.atlassian.net" # URL of the jira instance
+  github:
+    data:
+      appid: xxxx
+      privatekeypath: creds/github-app.pem
+  github-org-example:
+    data:
+      installationid: xxxxx
 
 approvalRules:
   - name: SRE approvers
@@ -98,6 +105,23 @@ approvalRules:
       - passage-sre-approvers
 
 roles:
+  - name: SRE Github access
+    description: Privilleged access to Github
+    approvalRuleRef:
+      name: SRE approvers
+    tags:
+      - sre
+    providers:
+      - name: Github
+        provider: github
+        runAsync: true
+        credentialRef:
+          name: github
+        parameters:
+          group: Owner
+          org: CTO2BPublic
+          username: tomas.liumparas
+
   - name: SRE Tenant Dev
     description: Privileged access. Provides PU access to Dev Tenant
     approvalRuleRef:
@@ -171,6 +195,11 @@ roles:
       name: SRE approvers
     tags:
       - sre
+    annotations:
+      dashboard.passage.io/enabled: "true"
+      dashboard.passage.io/dataType: "sum"
+      dashboard.passage.io/widgetType: "statCard"
+      dashboard.passage.io/icon: "user"
     providers:
       - name: GitlabRo
         provider: gitlab
@@ -201,7 +230,7 @@ roles:
           name: teleport
         parameters:
           group: ro-role
-      
+
       - name: CloudflareRo
         provider: cloudflare
         credentialRef:
