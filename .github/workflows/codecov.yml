@@ -41,8 +41,17 @@ jobs:
         run: |
           go test -v -coverprofile=coverage.out ./pkg/providers/github
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Generate coverage summary
+        uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          files: providers/github/coverage.out
-          fail_ci_if_error: true
+          filename: coverage.out
+          badge: true
+          fail_below_min: true
+          format: markdown
+          output: coverage.md
+          thresholds: "60 80" # red <60%, yellow <80%, else green
+
+      - name: Comment coverage report
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: coverage.md
