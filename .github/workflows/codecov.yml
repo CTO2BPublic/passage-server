@@ -36,8 +36,7 @@ jobs:
 
       - name: Test GitHub provider
         run: |
-          cd providers/github
-          go test -v -coverprofile=coverage.out ./...
+          go test -v -coverprofile=coverage.out ./pkg/providers/github
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
