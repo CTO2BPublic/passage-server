@@ -77,7 +77,6 @@ func NewGithubProvider(ctx context.Context, config models.ProviderConfig) (*Gith
 	for _, inst := range installations {
 		if inst.GetAccount().GetLogin() == parameters.Org {
 			installationID = inst.GetID()
-			log.Debug().Msgf("InstallationID: %d Account: %s", inst.GetID(), inst.GetAccount().GetLogin())
 			break
 		}
 	}
@@ -95,7 +94,6 @@ func NewGithubProvider(ctx context.Context, config models.ProviderConfig) (*Gith
 
 	tracedInsTr := otelhttp.NewTransport(insTr)
 	installationClient := github.NewClient(&http.Client{Transport: tracedInsTr})
-
 
 	// PAT Client
 	pat := creds.GetString("pat")
