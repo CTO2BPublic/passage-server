@@ -89,7 +89,7 @@ func (s *Server) SetupEngineWithDefaults() *Server {
 		access.GET("/roles", accessRoleController.List)
 		access.POST("/requests", accessRequestController.Create)
 		access.GET("/requests", accessRequestController.List)
-		access.POST("/requests/:ID", accessRequestController.Get)
+		access.GET("/requests/:ID", accessRequestController.Get)
 		access.POST("/requests/:ID/approve", accessRequestController.Approve)
 		access.POST("/requests/:ID/expire", accessRequestController.Expire)
 		access.DELETE("/requests/:ID", accessRequestController.Delete)
