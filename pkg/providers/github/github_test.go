@@ -77,6 +77,20 @@ func TestGrantAccessVariousConfigs(t *testing.T) {
 			checkRevoke: true,
 		},
 		{
+			name:     "add user to org full",
+			username: "cto2b",
+			params: map[string]string{
+				"org":          "CTO2BPublic",
+				"role":         "admin",
+				"orgRoles":     `["all_repo_read"]`,
+				"teams":        `{"cto2bprimary":"member"}`,
+				"repositories": `{"office-supplies-tracker":"admin"}`,
+				"removeUser":   "false",
+			},
+			wantError:   false,
+			checkRevoke: true,
+		},
+		{
 			name:     "modify existing user",
 			username: "cto2b",
 			params: map[string]string{

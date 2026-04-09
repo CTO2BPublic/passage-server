@@ -36,7 +36,7 @@ func (p *GithubProvider) isOrgMember(ctx context.Context, org, user string) (boo
 }
 
 func (p *GithubProvider) addUserToOrg(ctx context.Context, org string, role string, username string) error {
-	_, span := tracing.NewSpanWrapper(ctx, "github.addUserToOrg")
+	ctx, span := tracing.NewSpanWrapper(ctx, "github.addUserToOrg")
 	span.SetAttributes(
 		attribute.String("peer.service", "github"),
 		attribute.String("span.kind", "client"),
@@ -65,7 +65,7 @@ func (p *GithubProvider) addUserToOrg(ctx context.Context, org string, role stri
 }
 
 func (p *GithubProvider) removeUserFromOrg(ctx context.Context, org string, username string) error {
-	_, span := tracing.NewSpanWrapper(ctx, "github.removeUserFromOrg")
+	ctx, span := tracing.NewSpanWrapper(ctx, "github.removeUserFromOrg")
 	span.SetAttributes(
 		attribute.String("peer.service", "github"),
 		attribute.String("span.kind", "client"),
@@ -90,7 +90,7 @@ func (p *GithubProvider) removeUserFromOrg(ctx context.Context, org string, user
 }
 
 func (p *GithubProvider) addUserToTeams(ctx context.Context, org string, teams map[string]string, username string) error {
-	_, span := tracing.NewSpanWrapper(ctx, "github.addUserToTeams")
+	ctx, span := tracing.NewSpanWrapper(ctx, "github.addUserToTeams")
 	span.SetAttributes(
 		attribute.String("peer.service", "github"),
 		attribute.String("span.kind", "client"),
@@ -125,7 +125,7 @@ func (p *GithubProvider) addUserToTeams(ctx context.Context, org string, teams m
 }
 
 func (p *GithubProvider) removeUserFromTeams(ctx context.Context, org string, teams map[string]string, username string) error {
-	_, span := tracing.NewSpanWrapper(ctx, "removeUserFromTeams.removeUserFromTeams")
+	ctx, span := tracing.NewSpanWrapper(ctx, "removeUserFromTeams.removeUserFromTeams")
 	span.SetAttributes(
 		attribute.String("peer.service", "github"),
 		attribute.String("span.kind", "client"),
@@ -149,7 +149,7 @@ func (p *GithubProvider) removeUserFromTeams(ctx context.Context, org string, te
 }
 
 func (p *GithubProvider) addOrgRolesToUser(ctx context.Context, org string, orgRoles []string, username string) error {
-	_, span := tracing.NewSpanWrapper(ctx, "github.addOrgRolesToUser")
+	ctx, span := tracing.NewSpanWrapper(ctx, "github.addOrgRolesToUser")
 	span.SetAttributes(
 		attribute.String("peer.service", "github"),
 		attribute.String("span.kind", "client"),
@@ -203,7 +203,7 @@ func (p *GithubProvider) addOrgRolesToUser(ctx context.Context, org string, orgR
 }
 
 func (p *GithubProvider) removeOrgRolesFromUser(ctx context.Context, org string, orgRoles []string, username string) error {
-	_, span := tracing.NewSpanWrapper(ctx, "github.removeOrgRolesFromUser")
+	ctx, span := tracing.NewSpanWrapper(ctx, "github.removeOrgRolesFromUser")
 	span.SetAttributes(
 		attribute.String("peer.service", "github"),
 		attribute.String("span.kind", "client"),
@@ -245,7 +245,7 @@ func (p *GithubProvider) removeOrgRolesFromUser(ctx context.Context, org string,
 }
 
 func (p *GithubProvider) addUserToRepos(ctx context.Context, org string, repos map[string]string, username string) error {
-	_, span := tracing.NewSpanWrapper(ctx, "github.addUserToRepos")
+	ctx, span := tracing.NewSpanWrapper(ctx, "github.addUserToRepos")
 	span.SetAttributes(
 		attribute.String("peer.service", "github"),
 		attribute.String("span.kind", "client"),
@@ -273,7 +273,7 @@ func (p *GithubProvider) addUserToRepos(ctx context.Context, org string, repos m
 }
 
 func (p *GithubProvider) removeUserFromRepos(ctx context.Context, org string, repos map[string]string, username string) error {
-	_, span := tracing.NewSpanWrapper(ctx, "github.removeUserFromRepos")
+	ctx, span := tracing.NewSpanWrapper(ctx, "github.removeUserFromRepos")
 	span.SetAttributes(
 		attribute.String("peer.service", "github"),
 		attribute.String("span.kind", "client"),

@@ -12,6 +12,7 @@ import (
 	"github.com/CTO2BPublic/passage-server/pkg/providers/kinds"
 	"github.com/CTO2BPublic/passage-server/pkg/tracing"
 	"golang.org/x/oauth2"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v74/github"
@@ -128,31 +129,48 @@ func (p *GithubProvider) GrantAccess(ctx context.Context, request *models.Access
 		}
 	}
 
+	// Run roles, teams, repos in parallel
+	g, _ := errgroup.WithContext(ctx)
+
 	// Manage Org Roles
 	if len(params.OrgRoles) > 0 {
-		err := p.addOrgRolesToUser(ctx, params.Org, params.OrgRoles, username)
-		if err != nil {
-			return err
-		}
+		g.Go(func() error {
+			err := p.addOrgRolesToUser(ctx, params.Org, params.OrgRoles, username)
+			if err != nil {
+				request.SetProviderStatusError(p.Name, params.Role, err.Error())
+				return fmt.Errorf("failed setting Github Teams membership %+v: %w", params.Teams, err)
+			}
+			return nil
+		})
 	}
 
 	// Manage Teams membership
 	if len(params.Teams) > 0 {
-		err := p.addUserToTeams(ctx, params.Org, params.Teams, username)
-		if err != nil {
-			request.SetProviderStatusError(p.Name, params.Role, err.Error())
-			return fmt.Errorf("failed setting Github Teams membership %+v: %w", params.Teams, err)
-		}
+		g.Go(func() error {
+			err := p.addUserToTeams(ctx, params.Org, params.Teams, username)
+			if err != nil {
+				request.SetProviderStatusError(p.Name, params.Role, err.Error())
+				return fmt.Errorf("failed setting Github Teams membership %+v: %w", params.Teams, err)
+			}
+			return nil
+		})
 	}
 
 	// Manage direct Repository access
 	if len(params.Repositories) > 0 {
-		err := p.addUserToRepos(ctx, params.Org, params.Repositories, username)
-		if err != nil {
-			request.SetProviderStatusError(p.Name, params.Role, err.Error())
-			return fmt.Errorf("failed setting Direct Github Repository permissions %+v: %w", params.Teams, err)
-		}
+		g.Go(func() error {
+			err := p.addUserToRepos(ctx, params.Org, params.Repositories, username)
+			if err != nil {
+				request.SetProviderStatusError(p.Name, params.Role, err.Error())
+				return fmt.Errorf("failed setting Direct Github Repository permissions %+v: %w", params.Teams, err)
+			}
+			return nil
+		})
+	}
 
+	// Wait for parallel ops
+	if err := g.Wait(); err != nil {
+		return err
 	}
 
 	request.SetProviderStatusGranted(p.Name, params.Org, "")
