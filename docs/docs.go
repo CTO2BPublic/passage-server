@@ -91,6 +91,42 @@ const docTemplate = `{
             }
         },
         "/access/requests/{ID}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Retrieves single access request by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Access requests"
+                ],
+                "summary": "Get single access request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "xxxx-xxxx-xxxx",
+                        "description": "AccessRequest id",
+                        "name": "ID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.ResponseSuccess"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "security": [
                     {
@@ -132,42 +168,6 @@ const docTemplate = `{
             }
         },
         "/access/requests/{ID}/approve": {
-            "get": {
-                "security": [
-                    {
-                        "JWT": []
-                    }
-                ],
-                "description": "Retrieves single access request by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Access requests"
-                ],
-                "summary": "Get single access request",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "default": "xxxx-xxxx-xxxx",
-                        "description": "AccessRequest id",
-                        "name": "ID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/controllers.ResponseSuccess"
-                        }
-                    }
-                }
-            },
             "post": {
                 "security": [
                     {

@@ -158,7 +158,7 @@ func (r *AccessRequestController) List(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 {object} ResponseSuccess
-// @Router /access/requests/{ID}/approve [get]
+// @Router /access/requests/{ID} [get]
 // @Param ID path string true "AccessRequest id" default(xxxx-xxxx-xxxx)
 func (r *AccessRequestController) Get(c *gin.Context) {
 

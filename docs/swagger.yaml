@@ -266,7 +266,6 @@ paths:
       summary: Delete access request
       tags:
       - Access requests
-  /access/requests/{ID}/approve:
     get:
       consumes:
       - application/json
@@ -290,6 +289,7 @@ paths:
       summary: Get single access request
       tags:
       - Access requests
+  /access/requests/{ID}/approve:
     post:
       consumes:
       - application/json
