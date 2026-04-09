@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/CTO2BPublic/passage-server/pkg/models"
@@ -127,13 +128,21 @@ type SqliteConfig struct {
 var k = koanf.New(".")
 var configData Config
 
-func InitConfig() error {
+func InitConfig(dir string) error {
+
+	if dir == "" {
+		dir = "./configs" // default
+	}
+
+	// normalize paths with filepath.Join
+	configPath := filepath.Join(dir, "config.yml")
+	secretPath := filepath.Join(dir, ".secret.yml")
 
 	// File config provider
-	if err := k.Load(file.Provider("configs/config.yml"), yaml.Parser()); err != nil {
+	if err := k.Load(file.Provider(configPath), yaml.Parser()); err != nil {
 		return fmt.Errorf("error loading config file: %v", err)
 	}
-	if err := k.Load(file.Provider("configs/.secret.yml"), yaml.Parser()); err != nil {
+	if err := k.Load(file.Provider(secretPath), yaml.Parser()); err != nil {
 		return fmt.Errorf("error loading secret config file: %v", err)
 	}
 

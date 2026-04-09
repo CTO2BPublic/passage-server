@@ -16,6 +16,7 @@ import (
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v74/github"
 	"github.com/rs/zerolog/log"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 )
 
@@ -31,8 +32,12 @@ type GithubProvider struct {
 }
 
 type GithubProviderParameters struct {
-	Org   string `json:"org"`
-	Group string `json:"group"` // admin, member
+	Org          string
+	Role         string
+	OrgRoles     []string
+	Teams        map[string]string
+	Repositories map[string]string
+	RemoveUser   string
 }
 
 func NewGithubProvider(ctx context.Context, config models.ProviderConfig) (*GithubProvider, error) {
@@ -72,7 +77,6 @@ func NewGithubProvider(ctx context.Context, config models.ProviderConfig) (*Gith
 	for _, inst := range installations {
 		if inst.GetAccount().GetLogin() == parameters.Org {
 			installationID = inst.GetID()
-			log.Debug().Msgf("InstallationID: %d Account: %s", inst.GetID(), inst.GetAccount().GetLogin())
 			break
 		}
 	}
@@ -88,7 +92,8 @@ func NewGithubProvider(ctx context.Context, config models.ProviderConfig) (*Gith
 		return nil, fmt.Errorf("failed to create GitHub App transport: %w", err)
 	}
 
-	installationClient := github.NewClient(&http.Client{Transport: insTr})
+	tracedInsTr := otelhttp.NewTransport(insTr)
+	installationClient := github.NewClient(&http.Client{Transport: tracedInsTr})
 
 	// PAT Client
 	pat := creds.GetString("pat")
@@ -114,18 +119,40 @@ func (p *GithubProvider) GrantAccess(ctx context.Context, request *models.Access
 	params := p.Parameters
 	username := request.GetProviderUsername(string(kinds.ProviderKindGithub))
 
-	log.Info().
-		Str("Provider", p.Name).
-		Str("AccessRequest", request.Id).
-		Str("Username", username).
-		Str("Group", params.Group).
-		Str("Org", params.Org).
-		Msg("Processing")
+	// Manage Org membership
+	if params.Role != "" {
+		err := p.addUserToOrg(ctx, params.Org, params.Role, username)
+		if err != nil {
+			request.SetProviderStatusError(p.Name, params.Role, err.Error())
+			return fmt.Errorf("failed setting Github Org membership: %w", err)
+		}
+	}
 
-	_, _, err := p.PatClient.Organizations.EditOrgMembership(ctx, username, params.Org, &github.Membership{Role: github.Ptr(params.Group)})
-	if err != nil {
-		request.SetProviderStatusError(p.Name, params.Org, err.Error())
-		return fmt.Errorf("failed to add user to org: %w", err)
+	// Manage Org Roles
+	if len(params.OrgRoles) > 0 {
+		err := p.addOrgRolesToUser(ctx, params.Org, params.OrgRoles, username)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Manage Teams membership
+	if len(params.Teams) > 0 {
+		err := p.addUserToTeams(ctx, params.Org, params.Teams, username)
+		if err != nil {
+			request.SetProviderStatusError(p.Name, params.Role, err.Error())
+			return fmt.Errorf("failed setting Github Teams membership %+v: %w", params.Teams, err)
+		}
+	}
+
+	// Manage direct Repository access
+	if len(params.Repositories) > 0 {
+		err := p.addUserToRepos(ctx, params.Org, params.Repositories, username)
+		if err != nil {
+			request.SetProviderStatusError(p.Name, params.Role, err.Error())
+			return fmt.Errorf("failed setting Direct Github Repository permissions %+v: %w", params.Teams, err)
+		}
+
 	}
 
 	request.SetProviderStatusGranted(p.Name, params.Org, "")
@@ -145,27 +172,40 @@ func (p *GithubProvider) RevokeAccess(ctx context.Context, request *models.Acces
 	params := p.Parameters
 	username := request.GetProviderUsername(string(kinds.ProviderKindGithub))
 
-	isMember, err := p.isOrgMember(ctx, params.Org, username)
-	if err != nil {
-		request.SetProviderStatusError(p.Name, params.Org, err.Error())
-		return fmt.Errorf("failed to check org membership: %w", err)
+	// Manage Org membership
+	if params.RemoveUser == "true" {
+		err := p.removeUserFromOrg(ctx, params.Org, username)
+		if err != nil {
+			request.SetProviderStatusError(p.Name, params.Org, err.Error())
+			return fmt.Errorf("failed to remove user from org: %w", err)
+		}
 	}
 
-	if !isMember {
-		request.SetProviderStatusRevoked(p.Name, params.Org, "already removed")
-		log.Info().
-			Str("Provider", p.Name).
-			Str("AccessRequest", request.Id).
-			Str("Username", username).
-			Str("Org", params.Org).
-			Msg("User already not in organization")
-		return nil
+	// Manage Org Roles
+	if len(params.OrgRoles) > 0 {
+		err := p.removeOrgRolesFromUser(ctx, params.Org, params.OrgRoles, username)
+		if err != nil {
+			return err
+		}
 	}
 
-	_, err = p.PatClient.Organizations.RemoveOrgMembership(ctx, username, params.Org)
-	if err != nil {
-		request.SetProviderStatusError(p.Name, params.Org, err.Error())
-		return fmt.Errorf("failed to remove user from org: %w", err)
+	// Manage Teams membership
+	if len(params.Teams) > 0 {
+		err := p.removeUserFromTeams(ctx, params.Org, params.Teams, username)
+		if err != nil {
+			request.SetProviderStatusError(p.Name, params.Role, err.Error())
+			return fmt.Errorf("failed setting Github Teams membership %+v: %w", params.Teams, err)
+		}
+	}
+
+	// Manage direct Repository access
+	if len(params.Repositories) > 0 {
+		err := p.removeUserFromRepos(ctx, params.Org, params.Repositories, username)
+		if err != nil {
+			request.SetProviderStatusError(p.Name, params.Role, err.Error())
+			return fmt.Errorf("failed setting Direct Github Repository permissions %+v: %w", params.Teams, err)
+		}
+
 	}
 
 	request.SetProviderStatusRevoked(p.Name, params.Org, "")
@@ -174,7 +214,8 @@ func (p *GithubProvider) RevokeAccess(ctx context.Context, request *models.Acces
 		Str("AccessRequest", request.Id).
 		Str("Username", username).
 		Str("Org", params.Org).
-		Msg("User removed from organization")
+		Msg("User access revoked")
+
 	return nil
 }
 
