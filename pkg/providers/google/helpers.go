@@ -3,6 +3,7 @@ package google
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"github.com/CTO2BPublic/passage-server/pkg/models"
 	"github.com/CTO2BPublic/passage-server/pkg/tracing"
@@ -54,7 +55,8 @@ func (g *GoogleProvider) isGroupMember(ctx context.Context, Group, username stri
 
 	_, err := g.Service.Members.Get(Group, username).Context(ctx).Do()
 	if err != nil {
-		if googleapiError, ok := err.(*googleapi.Error); ok && googleapiError.Code == 404 {
+		googleapiError, ok := err.(*googleapi.Error)
+		if ok && slices.Contains([]int{400, 404}, googleapiError.Code) {
 			return false, nil // User is not a member
 		}
 		return false, err
