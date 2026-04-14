@@ -105,7 +105,7 @@ func (a *AWSProvider) GrantAccess(ctx context.Context, request *models.AccessReq
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
 			request.SetProviderStatusGranted(a.Name, parameters.Group, err.Error())
-			return err
+			return nil
 		}
 		request.SetProviderStatusError(a.Name, parameters.Group, err.Error())
 		return err
