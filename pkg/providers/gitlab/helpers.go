@@ -13,6 +13,8 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
+var ErrUserNotFound = errors.New("user not found")
+
 // Helper functions
 func (a *GitlabProvider) getGroup(ctx context.Context) (group *clientgo.Group, err error) {
 
@@ -66,7 +68,7 @@ func (a *GitlabProvider) getUser(ctx context.Context) (user *clientgo.User, err 
 			return user, nil
 		}
 	}
-	return nil, fmt.Errorf("user not found")
+	return nil, ErrUserNotFound
 }
 
 func (a *GitlabProvider) addGroupMember(ctx context.Context, group *clientgo.Group, user *clientgo.User) (err error) {
