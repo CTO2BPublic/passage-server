@@ -118,6 +118,18 @@ func (a *GitlabProvider) RevokeAccess(ctx context.Context, request *models.Acces
 
 	user, err := a.getUser(ctx)
 	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			request.SetProviderStatusRevoked(a.Name, parameters.Group, "user does not exist. probably deleted")
+			log.Info().
+				Str("Provider", a.Name).
+				Str("AccessRequest", request.Id).
+				Str("username", parameters.Username).
+				Str("group", parameters.Group).
+				Msg("User not found, treating as already revoked")
+
+			return nil
+		}
+
 		request.SetProviderStatusError(a.Name, parameters.Group, err.Error())
 		return fmt.Errorf("failed to retrieve gitlab user id: %w", err)
 	}

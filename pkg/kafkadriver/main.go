@@ -17,7 +17,7 @@ type Kafka struct {
 }
 
 var Driver = new(Kafka)
-var Config = config.GetConfig().Events.Kafka
+var Config = config.GetConfig()
 var Tracer = otel.Tracer("pkg/kafkadriver")
 
 // Setup Initialize Kafka client
@@ -26,13 +26,13 @@ func (k *Kafka) NewClient() (*Kafka, error) {
 	log.Info().Msg("[Kafka] Creating client")
 
 	// Kafka client config
-	k.AuditTopic = Config.Topic
+	k.AuditTopic = Config.Events.Kafka.Topic
 
 	// Producer config
 	producerConfig := sarama.NewConfig()
 	producerConfig.Producer.Return.Successes = true
 	producerConfig.Producer.RequiredAcks = sarama.WaitForLocal
-	producer, err := sarama.NewSyncProducer([]string{Config.Hostname}, producerConfig)
+	producer, err := sarama.NewSyncProducer([]string{Config.Events.Kafka.Hostname}, producerConfig)
 	if err != nil {
 		log.Error().Msgf("[Kafka] Failed to create producer: %s", err.Error())
 	}
@@ -40,7 +40,7 @@ func (k *Kafka) NewClient() (*Kafka, error) {
 	// Create topic
 	log.Info().Msgf("[Kafka] Creating topic: %s", k.AuditTopic)
 
-	broker := sarama.NewBroker(Config.Hostname)
+	broker := sarama.NewBroker(Config.Events.Kafka.Hostname)
 	brokerConfig := sarama.NewConfig()
 
 	if err := broker.Open(brokerConfig); err != nil {
@@ -51,8 +51,8 @@ func (k *Kafka) NewClient() (*Kafka, error) {
 		Timeout: time.Second * 15,
 		TopicDetails: map[string]*sarama.TopicDetail{
 			k.AuditTopic: {
-				NumPartitions:     int32(Config.NumPartitions),
-				ReplicationFactor: int16(Config.ReplicationFactor),
+				NumPartitions:     int32(Config.Events.Kafka.NumPartitions),
+				ReplicationFactor: int16(Config.Events.Kafka.ReplicationFactor),
 			},
 		},
 	}

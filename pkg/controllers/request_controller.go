@@ -151,6 +151,41 @@ func (r *AccessRequestController) List(c *gin.Context) {
 }
 
 // @Security JWT
+// @Summary Get single access request
+// @Schemes
+// @Description Retrieves single access request by ID
+// @Tags Access requests
+// @Accept json
+// @Produce json
+// @Success 200 {object} ResponseSuccess
+// @Router /access/requests/{ID} [get]
+// @Param ID path string true "AccessRequest id" default(xxxx-xxxx-xxxx)
+func (r *AccessRequestController) Get(c *gin.Context) {
+
+	ctx, span := tracing.NewSpanWrapper(c.Request.Context(), "controllers.RequestController.Get")
+	defer span.End()
+
+	id := c.Param("ID")
+	uid := c.GetString("uid")
+	groups := c.GetStringSlice("groups")
+	utype := c.GetString("utype")
+
+	accessRequest, err := Db.SelectAccessRequest(ctx, models.AccessRequest{Id: id})
+	if err != nil {
+		c.AbortWithStatusJSON(errors.ErrorDatabaseRecordNotFound())
+		return
+	}
+	// Check if user is allowed
+	allowed := accessRequest.HasPermissions(uid, groups, utype)
+	if !allowed {
+		c.AbortWithStatusJSON(errors.StatusDenied())
+		return
+	}
+
+	c.JSON(200, accessRequest)
+}
+
+// @Security JWT
 // @Summary Delete access request
 // @Schemes
 // @Description Delete access request by id

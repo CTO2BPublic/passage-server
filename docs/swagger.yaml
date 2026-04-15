@@ -266,6 +266,29 @@ paths:
       summary: Delete access request
       tags:
       - Access requests
+    get:
+      consumes:
+      - application/json
+      description: Retrieves single access request by ID
+      parameters:
+      - default: xxxx-xxxx-xxxx
+        description: AccessRequest id
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.ResponseSuccess'
+      security:
+      - JWT: []
+      summary: Get single access request
+      tags:
+      - Access requests
   /access/requests/{ID}/approve:
     post:
       consumes:
