@@ -28,7 +28,6 @@ func (a *GitlabProvider) getGroup(ctx context.Context) (group *clientgo.Group, e
 	parameters := a.Parameters
 
 	groupResult, _, err := a.Client.Groups.GetGroup(parameters.Group, &clientgo.GetGroupOptions{
-		// Search: &parameters.Group,
 		ListOptions: clientgo.ListOptions{
 			Page:    1,
 			PerPage: 100,
@@ -36,18 +35,8 @@ func (a *GitlabProvider) getGroup(ctx context.Context) (group *clientgo.Group, e
 	})
 	if err != nil {
 		return nil, fmt.Errorf("group %s not found: %w", a.Parameters.Group, err)
-		// return nil, err
 	}
 
-	// log.Debug().Str("group", parameters.Group).Msgf("%+v", groups)
-
-	// for _, group := range groups {
-	// 	log.Debug().Msgf("found gitlab group: %+v", group)
-	// 	if group.FullPath == parameters.Group {
-	// 		return group, nil
-	// 	}
-	// }
-	// return nil, fmt.Errorf("group not found")
 	return groupResult, nil
 }
 
