@@ -54,10 +54,11 @@ func (g *GoogleProvider) isGroupMember(ctx context.Context, Group, username stri
 
 	_, err := g.Service.Members.Get(Group, username).Context(ctx).Do()
 	if err != nil {
-		if apiErr, ok := err.(*googleapi.Error); ok {
+		apiErr, ok := err.(*googleapi.Error)
+		if ok {
 			// 404 = user is not a member of the group
 			if apiErr.Code == 404 {
-				return true, nil
+				return false, nil
 			}
 		}
 		// any other error is real failure
