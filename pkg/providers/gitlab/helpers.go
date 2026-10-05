@@ -29,6 +29,10 @@ func (a *GitlabProvider) getGroup(ctx context.Context) (group *clientgo.Group, e
 
 	groups, _, err := a.Client.Groups.ListGroups(&clientgo.ListGroupsOptions{
 		Search: &parameters.Group,
+		ListOptions: clientgo.ListOptions{
+			Page:    1,
+			PerPage: 100,
+		},
 	})
 	if err != nil {
 		return nil, err
