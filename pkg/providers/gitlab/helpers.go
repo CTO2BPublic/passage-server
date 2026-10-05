@@ -34,6 +34,8 @@ func (a *GitlabProvider) getGroup(ctx context.Context) (group *clientgo.Group, e
 		return nil, err
 	}
 
+	log.Debug().Str("group", parameters.Group).Msgf("%+v", groups)
+
 	for _, group := range groups {
 		log.Debug().Msgf("found gitlab group: %+v", group)
 		if group.FullPath == parameters.Group {
