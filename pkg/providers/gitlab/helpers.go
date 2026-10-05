@@ -27,20 +27,17 @@ func (a *GitlabProvider) getGroup(ctx context.Context) (group *clientgo.Group, e
 
 	parameters := a.Parameters
 
-	groups, _, err := a.Client.Groups.ListGroups(&clientgo.ListGroupsOptions{
-		Search: &parameters.Group,
+	groupResult, _, err := a.Client.Groups.GetGroup(parameters.Group, &clientgo.GetGroupOptions{
+		ListOptions: clientgo.ListOptions{
+			Page:    1,
+			PerPage: 100,
+		},
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("group %s not found: %w", a.Parameters.Group, err)
 	}
 
-	for _, group := range groups {
-		log.Debug().Msgf("found gitlab group: %+v", group)
-		if group.FullPath == parameters.Group {
-			return group, nil
-		}
-	}
-	return nil, fmt.Errorf("group not found")
+	return groupResult, nil
 }
 
 func (a *GitlabProvider) getUser(ctx context.Context) (user *clientgo.User, err error) {
