@@ -23,7 +23,10 @@ type Provider interface {
 }
 
 func NewProvider(ctx context.Context, providerConfig models.ProviderConfig) (Provider, error) {
+	return newProviderFactory(ctx, providerConfig)
+}
 
+func newProvider(ctx context.Context, providerConfig models.ProviderConfig) (Provider, error) {
 	switch providerConfig.Provider {
 	case string(kinds.ProviderKindMock):
 		return mockp.NewMockProvider(ctx, providerConfig)
@@ -55,4 +58,14 @@ func NewProviderUsernames() models.ProviderUsernames {
 		p.ProviderUsernames[string(kind)] = ""
 	}
 	return p
+}
+
+// variable to allow overriding in tests
+var newProviderFactory = newProvider
+
+type ProviderFactoryFunc func(ctx context.Context, providerConfig models.ProviderConfig) (Provider, error)
+
+// SetNewProviderFactory allows overriding the provider factory function.
+func SetNewProviderFactory(f ProviderFactoryFunc) {
+	newProviderFactory = f
 }

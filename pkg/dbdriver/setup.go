@@ -55,8 +55,11 @@ func (d *Database) Connect() {
 
 	// SQLite engine
 	if Config.Db.Engine == "sqlite" {
-
-		d.Engine, err = gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
+		filename := "gorm.db"
+		if Config.Db.Sqlite.Filename != "" {
+			filename = Config.Db.Sqlite.Filename
+		}
+		d.Engine, err = gorm.Open(sqlite.Open(filename), &gorm.Config{})
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed to connect to database")
 		}

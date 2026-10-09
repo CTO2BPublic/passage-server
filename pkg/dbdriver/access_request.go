@@ -35,6 +35,12 @@ func (d *Database) SelectAccessRequests(ctx context.Context) (result []models.Ac
 	return result, q.Error
 }
 
+func (d *Database) SelectAccessRequestsByUserID(ctx context.Context, userID string) ([]models.AccessRequest, error) {
+	var result []models.AccessRequest
+	q := d.Engine.WithContext(ctx).Where("status_requested_by = ?", userID).Find(&result)
+	return result, q.Error
+}
+
 func (d *Database) AccessRequestExists(ctx context.Context, data models.AccessRequest) (bool, error) {
 	var count int64
 	err := d.Engine.WithContext(ctx).Model(&models.AccessRequest{}).Where("id = ?", data.Id).Count(&count).Error

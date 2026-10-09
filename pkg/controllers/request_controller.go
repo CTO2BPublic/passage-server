@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/CTO2BPublic/passage-server/pkg/errors"
 	"github.com/CTO2BPublic/passage-server/pkg/models"
@@ -272,7 +273,7 @@ func (r *AccessRequestController) Approve(c *gin.Context) {
 	}
 
 	// Call role providers
-	err = r.callRoleProvidersAsync(ctx, providerMethodApprove, accessRequest, accessRole)
+	err = r.callRoleProvidersAsync(ctx, providerMethodApprove, accessRequest, accessRole, []string{})
 	// Partial success
 	if err != nil {
 		c.AbortWithStatusJSON(errors.AccessProviderCallPartiallyFailed(err))
@@ -308,7 +309,7 @@ func (r *AccessRequestController) Approve(c *gin.Context) {
 // @Param ID path string true "AccessRequest id" default(xxxx-xxxx-xxxx)
 func (r *AccessRequestController) Expire(c *gin.Context) {
 
-	ctx, span := tracing.NewSpanWrapper(c.Request.Context(), "controllers.RequestController.Expire")
+	ctx, span := tracing.NewSpanWrapper(c, "controllers.RequestController.Expire")
 	defer span.End()
 
 	id := c.Param("ID")
@@ -336,8 +337,26 @@ func (r *AccessRequestController) Expire(c *gin.Context) {
 		return
 	}
 
+	// Get all access requests for the user
+	userAccessRequests, err := Db.SelectAccessRequestsByUserID(ctx, accessRequest.Status.RequestedBy)
+	if err != nil {
+		c.AbortWithStatusJSON(errors.ErrorDatabaseSelect(err))
+		return
+	}
+
+	// Identify active roles from other approved requests
+	now := time.Now()
+	activeRoles := []string{}
+	for _, req := range userAccessRequests {
+		if req.Id != accessRequest.Id &&
+			req.Status.Status == models.AccessRequestApproved &&
+			req.Status.ExpiresAt.After(now) {
+			activeRoles = append(activeRoles, req.RoleRef.Name)
+		}
+	}
+
 	// Call role providers
-	err = r.callRoleProvidersAsync(ctx, providerMethodExpire, accessRequest, accessRole)
+	err = r.callRoleProvidersAsync(ctx, providerMethodExpire, accessRequest, accessRole, activeRoles)
 	if err != nil {
 		c.AbortWithStatusJSON(errors.AccessProviderCallPartiallyFailed(err))
 		return
@@ -367,7 +386,7 @@ const (
 	providerMethodExpire
 )
 
-func (r *AccessRequestController) callRoleProvidersAsync(ctx context.Context, method providerMethod, request *models.AccessRequest, role models.AccessRole) (err error) {
+func (r *AccessRequestController) callRoleProvidersAsync(ctx context.Context, method providerMethod, request *models.AccessRequest, role models.AccessRole, activeRoles []string) (err error) {
 
 	ctx, span := tracing.NewSpanWrapper(ctx, "controllers.RequestController.callRoleProviders")
 	defer span.End()
@@ -412,6 +431,17 @@ func (r *AccessRequestController) callRoleProvidersAsync(ctx context.Context, me
 					return
 				}
 			case providerMethodExpire:
+				// If the role is active in other requests, do not revoke it
+				for _, activeRole := range activeRoles {
+					if activeRole == role.Name {
+						log.Info().
+							Str("AccessRequest", request.Id).
+							Str("Role", role.Name).
+							Str("Provider", config.Name).
+							Msg("Skipping revocation for active role")
+						return
+					}
+				}
 				err := provider.RevokeAccess(ctx, request)
 				if err != nil {
 					_ = Event.AccessRequestExpireError(ctx, *request, config, err)
